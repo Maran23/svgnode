@@ -23,7 +23,7 @@ import javafx.scene.shape.SVGPath;
 /// ```
 /// <SvgNode path="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" size="32" svgColor="RED" />
 /// ```
-/// <h2>Extended FXML usage from a constant</h2>
+/// <h2>Extended FXML usage from a constant (String or Enum)</h2>
 /// ```
 /// <SvgNode size="32" svgColor="RED">
 ///     <path>

@@ -1,5 +1,9 @@
 package tools.maran.svgnode;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+import java.util.function.Consumer;
+
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -7,24 +11,26 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Separator;
+import javafx.scene.control.Toggle;
+import javafx.scene.control.ToggleButton;
+import javafx.scene.control.ToggleGroup;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
-/**
- * Manual test application for {@link SvgNode}.
- *
- * <p>Provides a visual playground to verify:</p>
- * <ul>
- *     <li>SVG rendering at various sizes</li>
- *     <li>Dynamic path swapping</li>
- *     <li>Runtime color changes</li>
- *     <li>Runtime resize behavior</li>
- * </ul>
- *
- * <p>Run as a standard JavaFX {@link Application}.</p>
- */
+/// Manual test application for [SvgNode].
+///
+/// Provides a visual playground to verify:
+///
+/// - Button Graphic + Transition
+/// - SVG rendering at various sizes
+/// - Runtime path swapping
+/// - Runtime color changes
+/// - Runtime resize behavior
+///
+/// @author Marius Hanl
 public class SvgNodeManualTest extends Application {
 
     private static final String HOME = "M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z";
@@ -35,8 +41,14 @@ public class SvgNodeManualTest extends Application {
 
     private static final String[] ALL_PATHS = { HOME, MAIL, FILTER, STAR, HEART };
     private static final String[] PATH_NAMES = { "Home", "Mail", "Filter", "Star", "Heart" };
-    private static final Color[] COLORS = { Color.DODGERBLUE, Color.CRIMSON, Color.FORESTGREEN, Color.ORANGE,
-            Color.MEDIUMPURPLE };
+    private static final Color[] COLORS = { Color.DODGERBLUE, Color.CRIMSON, Color.FORESTGREEN, Color.ORANGE, Color.MEDIUMPURPLE };
+    private static final String[] COLOR_NAMES = { "Blue", "Red", "Green", "Orange", "Purple" };
+    private static final Double[] SIZES = { 16d, 24d, 32d, 48d, 64d, 128d };
+    private static final String[] SIZE_LABELS = { "16px", "24px", "32px", "48px", "64px", "128px" };
+
+    public static void main(String[] args) {
+        launch(args);
+    }
 
     @Override
     public void start(Stage stage) {
@@ -44,68 +56,11 @@ public class SvgNodeManualTest extends Application {
         root.setPadding(new Insets(20));
         root.setAlignment(Pos.TOP_LEFT);
 
-        root.getChildren().add(sectionLabel("Button Graphic"));
-        Button buttonLight = new Button("Button Light", new SvgNode(HEART));
-        buttonLight.setStyle("-fx-color: #FFFFFF; -fx-background: -fx-color; -fx-background-color: -fx-background;");
-        root.getChildren().add(buttonLight);
-
-        Button buttonDark = new Button("Button Dark", new SvgNode(HEART));
-        buttonDark.setStyle("-fx-color: #000000; -fx-background: -fx-color; -fx-background-color: -fx-background;");
-        root.getChildren().add(buttonDark);
-
-        root.getChildren().addAll(new Separator(), sectionLabel("Static icons (24 × 24)"));
-
-        HBox staticRow = new HBox(12);
-        staticRow.setAlignment(Pos.CENTER_LEFT);
-        for (int i = 0; i < ALL_PATHS.length; i++) {
-            SvgNode icon = new SvgNode(ALL_PATHS[i]);
-            icon.setSvgColor(COLORS[i]);
-            staticRow.getChildren().addAll(icon, new Label(PATH_NAMES[i]));
-        }
-        root.getChildren().add(staticRow);
-
-        root.getChildren().addAll(new Separator(), sectionLabel("Dynamic path swap"));
-
-        SvgNode swappable = new SvgNode(HOME, 32);
-        swappable.setSvgColor(Color.DODGERBLUE);
-
-        HBox swapButtons = new HBox(8);
-        swapButtons.setAlignment(Pos.CENTER_LEFT);
-        for (int i = 0; i < ALL_PATHS.length; i++) {
-            final String path = ALL_PATHS[i];
-            Button btn = new Button(PATH_NAMES[i]);
-            btn.setOnAction(_ -> swappable.setPath(path));
-            swapButtons.getChildren().add(btn);
-        }
-        root.getChildren().addAll(new HBox(12, swappable, swapButtons));
-
-        root.getChildren().addAll(new Separator(), sectionLabel("Runtime color change"));
-
-        SvgNode colourTarget = new SvgNode(HEART, 40);
-        colourTarget.setSvgColor(Color.CRIMSON);
-
-        HBox colourButtons = new HBox(8);
-        colourButtons.setAlignment(Pos.CENTER_LEFT);
-        for (Color color : COLORS) {
-            Button btn = new Button(colorName(color));
-            btn.setOnAction(_ -> colourTarget.setSvgColor(color));
-            colourButtons.getChildren().add(btn);
-        }
-        root.getChildren().addAll(new HBox(12, colourTarget, colourButtons));
-
-        root.getChildren().addAll(new Separator(), sectionLabel("Runtime resize"));
-
-        SvgNode resizable = new SvgNode(STAR, 24);
-        resizable.setSvgColor(Color.ORANGE);
-
-        HBox sizeButtons = new HBox(8);
-        sizeButtons.setAlignment(Pos.CENTER_LEFT);
-        for (int size : new int[] { 16, 24, 32, 48, 64, 128 }) {
-            Button btn = new Button(size + "px");
-            btn.setOnAction(_ -> resizable.setSize(size));
-            sizeButtons.getChildren().add(btn);
-        }
-        root.getChildren().addAll(new HBox(12, resizable, sizeButtons));
+        buttonGraphics(root);
+        staticSvgs(root);
+        svgPathSwap(root);
+        svgColorChange(root);
+        svgResize(root);
 
         Scene scene = new Scene(root, 600, 600);
         stage.setTitle("SvgNode – Manual Test");
@@ -113,34 +68,122 @@ public class SvgNodeManualTest extends Application {
         stage.show();
     }
 
-    /** Creates a bold section header label. */
+    private void buttonGraphics(VBox root) {
+        root.getChildren().add(sectionLabel("Button Graphics automatically adjust + Transition"));
+        Button buttonLight = new Button("Button Light with Dark Hover", new SvgNode(HEART));
+        buttonLight.getStylesheets().add(toBase64("""
+                .button {
+                    -fx-color: #FFFFFF; -fx-background: -fx-color; -fx-background-color: -fx-background;
+                    transition-property: -fx-background-color;
+                    transition-duration: 400ms;
+                }
+                .button:hover {
+                    -fx-color: #000000; -fx-background: -fx-color; -fx-background-color: -fx-background;
+                }
+                """));
+        root.getChildren().add(buttonLight);
+
+        Button buttonDark = new Button("Button Dark with Light Hover", new SvgNode(HEART));
+        buttonDark.getStylesheets().add(toBase64("""
+                .button {
+                    -fx-color: #000000; -fx-background: -fx-color; -fx-background-color: -fx-background;
+                    transition-property: -fx-background-color;
+                    transition-duration: 400ms;
+                }
+                .button:hover {
+                    -fx-color: #FFFFFF; -fx-background: -fx-color; -fx-background-color: -fx-background;
+                }
+                """));
+        root.getChildren().add(buttonDark);
+    }
+
+    /// Creates an [HBox] of mutually exclusive [ToggleButton]s.
+    /// When the selection changes the supplied `onSelect` callback is
+    /// invoked with the value associated with the chosen toggle.
+    ///
+    /// @param <T>          value type stored as user data on each toggle
+    /// @param values       one value per toggle
+    /// @param labels       display text for each toggle (parallel to `values`)
+    /// @param defaultIndex index of the toggle that should be initially selected
+    /// @param onSelect     callback receiving the selected value
+    /// @return an [HBox] containing the toggle buttons
+    private <T> HBox createToggleBar(T[] values, String[] labels, int defaultIndex, Consumer<T> onSelect) {
+        HBox box = new HBox(8);
+        box.setAlignment(Pos.CENTER_LEFT);
+
+        ToggleGroup group = new ToggleGroup();
+        group.selectedToggleProperty().addListener(_ -> {
+            Toggle toggle = group.getSelectedToggle();
+            if (toggle == null) {
+                return;
+            }
+            T userData = (T) toggle.getUserData();
+            onSelect.accept(userData);
+        });
+
+        for (int i = 0; i < values.length; i++) {
+            ToggleButton btn = new ToggleButton(labels[i]);
+            btn.setUserData(values[i]);
+            btn.setToggleGroup(group);
+            box.getChildren().add(btn);
+        }
+
+        ((ToggleButton) box.getChildren().get(defaultIndex)).setSelected(true);
+
+        return box;
+    }
+
     private static Label sectionLabel(String text) {
         Label label = new Label(text);
         label.setStyle("-fx-font-weight: bold; -fx-font-size: 14px;");
         return label;
     }
 
-    /** Returns a readable name for well-known colors. */
-    private static String colorName(Color color) {
-        if (color.equals(Color.DODGERBLUE)) {
-            return "Blue";
+    private void staticSvgs(VBox root) {
+        root.getChildren().addAll(new Separator(), sectionLabel("Static icons with Tooltip (24px)"));
+
+        HBox staticRow = new HBox(12);
+        staticRow.setAlignment(Pos.CENTER_LEFT);
+        for (int i = 0; i < ALL_PATHS.length; i++) {
+            SvgNode icon = new SvgNode(ALL_PATHS[i]);
+            icon.setSvgColor(COLORS[i]);
+            Tooltip.install(icon, new Tooltip("Tooltip"));
+            staticRow.getChildren().addAll(icon, new Label(PATH_NAMES[i]));
         }
-        if (color.equals(Color.CRIMSON)) {
-            return "Red";
-        }
-        if (color.equals(Color.FORESTGREEN)) {
-            return "Green";
-        }
-        if (color.equals(Color.ORANGE)) {
-            return "Orange";
-        }
-        if (color.equals(Color.MEDIUMPURPLE)) {
-            return "Purple";
-        }
-        return color.toString();
+        root.getChildren().add(staticRow);
     }
 
-    public static void main(String[] args) {
-        launch(args);
+    private void svgColorChange(VBox root) {
+        root.getChildren().addAll(new Separator(), sectionLabel("Runtime color change"));
+
+        SvgNode colorTarget = new SvgNode(HEART, 40);
+        colorTarget.setSvgColor(Color.CRIMSON);
+
+        HBox toggleBar = createToggleBar(COLORS, COLOR_NAMES, 1, colorTarget::setSvgColor);
+        root.getChildren().add(new HBox(12, colorTarget, toggleBar));
+    }
+
+    private void svgPathSwap(VBox root) {
+        root.getChildren().addAll(new Separator(), sectionLabel("Runtime path swap"));
+
+        SvgNode swappable = new SvgNode(HOME, 32);
+        swappable.setSvgColor(Color.DODGERBLUE);
+
+        HBox toggleBar = createToggleBar(ALL_PATHS, PATH_NAMES, 0, swappable::setPath);
+        root.getChildren().add(new HBox(12, swappable, toggleBar));
+    }
+
+    private void svgResize(VBox root) {
+        root.getChildren().addAll(new Separator(), sectionLabel("Runtime resize"));
+
+        SvgNode resizable = new SvgNode(STAR, 24);
+        resizable.setSvgColor(Color.ORANGE);
+
+        HBox toggleBar = createToggleBar(SIZES, SIZE_LABELS, 1, resizable::setSize);
+        root.getChildren().add(new HBox(12, resizable, toggleBar));
+    }
+
+    private String toBase64(String css) {
+        return "data:base64," + Base64.getUrlEncoder().encodeToString(css.getBytes(StandardCharsets.UTF_8));
     }
 }
