@@ -4,6 +4,9 @@ A lightweight, optimized JavaFX node for rendering SVG paths at any size. Fully 
 
 ![Sampler](https://github.com/Maran23/svgnode/blob/demo/demo/sampler.webp?raw=true)
 
+| ![FontAwesome](https://github.com/Maran23/svgnode/blob/demo/demo/library_fontawesome.webp?raw=true) | ![Bootstrap](https://github.com/Maran23/svgnode/blob/demo/demo/library_bootstrap.webp?raw=true) |
+|-----------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------|
+
 ## Features
 
 - 🎨 Render any SVG path as a JavaFX node
@@ -12,16 +15,19 @@ A lightweight, optimized JavaFX node for rendering SVG paths at any size. Fully 
 - 📐 Uniform rasterization with a single `size` property
 - 📄 FXML-compatible with attribute and constant-based usage
 - 🎭 CSS-stylable via `.svg-node` and `.svg` style classes. By default, the SVG automatically adjusts its color based on the background – just like text!
----
-- 🖼️ Will work fine with SVG Libraries such as [SVG-FontAwesome](https://github.com/Maran23/svg-fontawesome)
-(see [below](#use-with-svg-libraries))
+
+### With SVG Libraries
+
+Will work fine with SVG Libraries (see usage [below](#use-with-svg-libraries)) such as:
+  - [SVG-FontAwesome](https://github.com/Maran23/svg-fontawesome)
+  - [SVG-Boostrap](https://github.com/Maran23/svg-bootstrap)
 
 ## Requirements
 
-| Dependency | Version |
-|------------|---------|
-| Java       | 25+     |
-| JavaFX     | 25+     |
+| Dependency | Version  |
+|------------|----------|
+| Java       | 25+      |
+| JavaFX     | 25+      |
 
 ## Installation
 
@@ -84,32 +90,55 @@ dynamic.sizeProperty().bind(slider.valueProperty());
 
 ### Use with SVG Libraries
 
-`SvgNode` works with any library that provides an SVG path.
-It is designed to fully work with libraries such as [SVG-FontAwesome](https://github.com/Maran23/svg-fontawesome).
-The same patterns shown above apply:
+`SvgNode` works with any library that provides SVGs as a path.
 
 ```java
 import tools.maran.svgnode.SvgNode;
 import tools.maran.svg.fontawesome.FASolid;
+import tools.maran.svg.bootstrap.Bootstrap;
 
-SvgNode icon = new SvgNode(FASolid.HOME.path());
+SvgNode iconFA = new SvgNode(FASolid.HOME.path());
+SvgNode iconBootstrap = new SvgNode(Bootstrap.HOUSE.path());
 ```
 
 ```xml
 <?import tools.maran.svgnode.SvgNode?>
 <?import tools.maran.svg.fontawesome.FASolid?>
+<?import tools.maran.svg.bootstrap.Bootstrap?>
 
 <SvgNode>
     <path>
         <FASolid fx:constant="HOME"/>
     </path>
 </SvgNode>
+<SvgNode>
+    <path>
+        <Bootstrap fx:constant="HOUSE"/>
+    </path>
+</SvgNode>
 ```
 
-## Demos
+## Sampler
 
-Files are in the tests and usually come with a `Launcher` class.
+The sampler is in the tests and can be used to show examples and manually test the `SvgNode`.
 
-| File                     | Description                                                  |
-|--------------------------|--------------------------------------------------------------|
-| `SvgNodeManualTest.java` | Sampler application to manually check all `SvgNode` features |
+Launch the `tools.maran.svgnode.manual.Sampler` class.
+
+The sampler respects the light and dark color scheme of your OS, so you can see how it looks in both.
+
+There are two categories in the sampler.
+
+### SvgNode sampler
+
+Shows the functionality of `SvgNode`.
+
+- Using a `SvgNode` as `Button` graphic, showing the automatic color switching based on the text color
+- Changing the path, color, and size of the `SvgNode`
+
+### SVG library explorer
+
+Shows all SVGs in a grid from supported SVG libraries, ready to be explored.
+
+SVG Libraries:
+- [SVG-FontAwesome](https://github.com/Maran23/svg-fontawesome)
+- [SVG-Bootstrap](https://github.com/Maran23/svg-bootstrap)

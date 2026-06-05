@@ -1,0 +1,170 @@
+@media (prefers-color-scheme: light) {
+    .root {
+        -bg:              #dedede;
+        -surface:         #f9f9f9;
+        -surface-alt:     #eaeaea;
+        -surface-hover:   #f0f0f0;
+        -surface-pressed: #e5e5e5;
+        -border:          #d0d0d0;
+        -border-hover:    #b0b0b0;
+        -text-primary:    #1a1a1a;
+        -text-secondary:  #555555;
+        -accent:          #4a90d9;
+        -accent-text:     #1a56b8;
+        -accent-bg:       #e8f0fe;
+        -accent-bg-hover: #d8e4f8;
+
+        -fx-background-color: -bg;
+    }
+}
+
+@media (prefers-color-scheme: dark) {
+    .root {
+        -bg:              #101010;
+        -surface:         #262626;
+        -surface-alt:     #303030;
+        -surface-hover:   #3a3a3a;
+        -surface-pressed: #454545;
+        -border:          #444444;
+        -border-hover:    #5a5a5a;
+        -text-primary:    #e8e8e8;
+        -text-secondary:  #aaaaaa;
+        -accent:          #5a9ae6;
+        -accent-text:     #8abcf4;
+        -accent-bg:       #1a2a40;
+        -accent-bg-hover: #1e3350;
+
+        -fx-background-color: -bg;
+    }
+}
+
+.label {
+    -fx-text-fill: -text-primary;
+}
+
+.tab-pane > .tab-header-area > .headers-region > .tab {
+    -fx-background-color: -surface-alt;
+    -fx-background-radius: 8 8 0 0;
+    -fx-background-insets: 0;
+    -fx-padding: 6 16;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+    -fx-cursor: hand;
+}
+
+.tab-pane > .tab-header-area > .headers-region > .tab:hover {
+    -fx-background-color: -surface-hover;
+}
+
+.tab-pane > .tab-header-area > .headers-region > .tab:selected {
+    -fx-background-color: -surface;
+}
+
+.tab-pane > .tab-header-area > .headers-region > .tab .tab-label {
+    -fx-text-fill: -text-secondary;
+    -fx-font-weight: bold;
+    -fx-font-size: 13px;
+}
+
+.tab-pane > .tab-header-area > .headers-region > .tab:selected .tab-label {
+    -fx-text-fill: -text-primary;
+}
+
+.tab-pane > .tab-header-area > .tab-header-background {
+    -fx-background-color: transparent;
+}
+
+.tab-pane > .tab-content-area {
+    -fx-background-color: -surface;
+    -fx-background-radius: 0 8 8 8;
+}
+
+.radio-button {
+    -fx-text-fill: -text-primary;
+    -fx-cursor: hand;
+}
+
+.toggle-button {
+    -fx-color: -surface;
+    -fx-background-color: -surface;
+    -fx-background-radius: 0;
+    -fx-border-color: -border;
+    -fx-border-radius: 0;
+    -fx-border-width: 1 0.5 1 0.5;
+    -fx-cursor: hand;
+}
+
+.toggle-button:hover {
+    -fx-color: -surface-hover;
+    -fx-background-color: -surface-hover;
+    -fx-border-color: -border-hover;
+}
+
+.toggle-button:pressed {
+    -fx-color: -surface-pressed;
+    -fx-background-color: -surface-pressed;
+}
+
+.toggle-button:selected {
+    -fx-color: -accent-bg;
+    -fx-background-color: -accent-bg;
+    -fx-border-color: -accent;
+    -fx-text-fill: -accent-text;
+}
+
+.toggle-button:selected:hover {
+    -fx-color: -accent-bg-hover;
+    -fx-background-color: -accent-bg-hover;
+}
+
+.left-pill {
+    -fx-background-radius: 6 0 0 6;
+    -fx-border-radius: 6 0 0 6;
+    -fx-border-width: 1 0.5 1 1;
+}
+
+.center-pill {
+    -fx-background-radius: 0;
+    -fx-border-radius: 0;
+    -fx-border-width: 1 0.5 1 0.5;
+}
+
+.right-pill {
+    -fx-background-radius: 0 6 6 0;
+    -fx-border-radius: 0 6 6 0;
+    -fx-border-width: 1 1 1 0.5;
+}
+
+.svg-button {
+    -fx-color: -surface;
+    -fx-background-color: -surface;
+    -fx-border-color: -border;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-border-width: 0.5;
+    -fx-padding: 0;
+    -fx-cursor: hand;
+}
+
+.svg-button:hover {
+    -fx-color: -surface-hover;
+    -fx-background-color: -surface-hover;
+    -fx-border-color: -border-hover;
+}
+
+.svg-button:pressed {
+    -fx-color: -surface-pressed;
+    -fx-background-color: -surface-pressed;
+    -fx-border-color: -border-hover;
+}
+
+.header {
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+}
+
+.content-area {
+    -fx-background-color: -surface-alt;
+    -fx-background-radius: 8;
+    -fx-padding: 4;
+}

@@ -1,0 +1,37 @@
+package tools.maran.svgnode.manual;
+
+import javafx.application.Application;
+import javafx.scene.Scene;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
+import javafx.scene.layout.StackPane;
+import javafx.stage.Stage;
+
+/// Manual test application for [SvgNode] and SVG libraries.
+/// Provides a visual playground (sampler).
+///
+/// @author Marius Hanl
+public class SamplerApp extends Application {
+
+    public static void main() {
+        launch();
+    }
+
+    @Override
+    public void start(Stage stage) {
+        Tab samplerTab = new Tab("SvgNode Sampler");
+        samplerTab.setContent(new SvgNodeSampler().getView());
+        samplerTab.setClosable(false);
+
+        Tab explorerTab = new Tab("SVG Library Explorer");
+        explorerTab.setContent(new SvgLibraryExplorer().getView());
+        explorerTab.setClosable(false);
+
+        TabPane tabPane = new TabPane(samplerTab, explorerTab);
+        Scene scene = new Scene(new StackPane(tabPane), 800, 600);
+        scene.getStylesheets().add(getClass().getResource("sampler.css").toExternalForm());
+        stage.setTitle("SvgNode – Sampler App");
+        stage.setScene(scene);
+        stage.show();
+    }
+}
