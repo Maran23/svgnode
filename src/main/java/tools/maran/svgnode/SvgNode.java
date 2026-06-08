@@ -14,17 +14,22 @@ import javafx.scene.shape.SVGPath;
 
 /// Node to show an SVG path with the specified size.
 ///
-/// <h1>Java usage</h2>
-/// ```
+/// # Java usage
+///
+/// ```java
 /// SvgNode icon = new SvgNode("M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z", 32);
 /// icon.setSvgColor(Color.RED);
 /// ```
-/// <h1>FXML usage</h2>
-/// ```
+///
+/// # FXML usage
+///
+/// ```xml
 /// <SvgNode path="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" size="32" svgColor="RED" />
 /// ```
-/// <h2>Extended FXML usage from a constant (String or Enum)</h2>
-/// ```
+///
+/// ## Extended FXML usage from a constant (String or Enum)
+///
+/// ```xml
 /// <SvgNode size="32" svgColor="RED">
 ///     <path>
 ///         <MyIcons fx:constant="HOME"/>
