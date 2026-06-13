@@ -38,6 +38,12 @@
     }
 }
 
+.tooltip {
+    -fx-show-delay: 200ms;
+    -fx-show-duration: 5000ms;
+    -fx-hide-delay: 100ms;
+}
+
 .label {
     -fx-text-fill: -text-primary;
 }

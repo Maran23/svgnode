@@ -36,13 +36,17 @@ import tools.maran.svg.bootstrap.Bootstrap;
 import tools.maran.svg.fontawesome.FABrand;
 import tools.maran.svg.fontawesome.FARegular;
 import tools.maran.svg.fontawesome.FASolid;
+import tools.maran.svg.materialdesign.MDIInterface;
+import tools.maran.svg.materialdesign.MDITechnology;
+import tools.maran.svg.materialdesign.MDIWorld;
 import tools.maran.svgnode.SvgNode;
 
 /// An SVG explorer that displays all available SVGs from a library in a searchable, browsable grid.
 ///
 /// Supported libraries:
-/// - FontAwesome (Solid / Regular / Brand)
+/// - Material Design (Interface / Technology / World)
 /// - Bootstrap
+/// - FontAwesome (Solid / Regular / Brand)
 ///
 /// @author Marius Hanl
 public class SvgLibraryExplorer {
@@ -54,6 +58,7 @@ public class SvgLibraryExplorer {
     private final TextField searchField;
     private final Slider sizeSlider;
     private final RadioButton javaRadio;
+    private final RadioButton fxmlRadio;
 
     private SvgLibrary currentLibrary;
 
@@ -88,10 +93,13 @@ public class SvgLibraryExplorer {
         javaRadio.setToggleGroup(copyFormatGroup);
         javaRadio.setSelected(true);
 
-        RadioButton fxmlRadio = new RadioButton("FXML");
+        fxmlRadio = new RadioButton("FXML");
         fxmlRadio.setToggleGroup(copyFormatGroup);
 
-        HBox copyBox = new HBox(8, new Label("Click any SVG to copy as"), javaRadio, fxmlRadio);
+        RadioButton plainTextRadio = new RadioButton("Plain text");
+        plainTextRadio.setToggleGroup(copyFormatGroup);
+
+        HBox copyBox = new HBox(8, new Label("Click any SVG to copy as"), javaRadio, fxmlRadio, plainTextRadio);
         copyBox.setAlignment(Pos.CENTER_LEFT);
 
         Debouncer sliderDebouncer = new Debouncer(Duration.millis(150));
@@ -104,7 +112,8 @@ public class SvgLibraryExplorer {
 
         searchField.textProperty().addListener((_, _, _) -> searchDebouncer.run(this::filterIcons));
 
-        List<SvgLibrary> libraries = List.of(new BootstrapLibrary(), new FontAwesomeLibrary());
+        List<SvgLibrary> libraries = List.of(new MaterialDesignLibrary(), new BootstrapLibrary(),
+                new FontAwesomeLibrary());
 
         TabPane tabPane = new TabPane();
         for (SvgLibrary lib : libraries) {
@@ -152,7 +161,7 @@ public class SvgLibraryExplorer {
 
         if (javaRadio.isSelected()) {
             copyText = "new SvgNode(%s.%s.path());".formatted(currentLibrary.className(), name);
-        } else {
+        } else if (fxmlRadio.isSelected()) {
             copyText = """
                     <SvgNode>
                         <path>
@@ -160,6 +169,8 @@ public class SvgLibraryExplorer {
                         </path>
                     </SvgNode>
                     """.formatted(currentLibrary.className(), name);
+        } else {
+            copyText = formatName(name);
         }
 
         ClipboardContent content = new ClipboardContent();
@@ -242,6 +253,89 @@ public class SvgLibraryExplorer {
         }
     }
 
+    /// A [SvgLibrary] with categorized SVG sets, displayed as pill toggle buttons.
+    ///
+    /// Subclasses define their categories via [Category] records, and the toggle bar
+    /// with population logic is handled automatically.
+    ///
+    /// @author Marius Hanl
+    private abstract class CategorizedSvgLibrary extends SvgLibrary {
+
+        private SVG[] current;
+        private String currentClassName;
+
+        CategorizedSvgLibrary(Category... categories) {
+            ToggleGroup group = new ToggleGroup();
+            HBox subBar = new HBox(0);
+            subBar.setAlignment(Pos.CENTER_LEFT);
+            subBar.setPadding(new Insets(4));
+
+            for (int i = 0; i < categories.length; i++) {
+                Category cat = categories[i];
+                ToggleButton btn = new ToggleButton(cat.label());
+                btn.setUserData(cat);
+                btn.setToggleGroup(group);
+                applyPillStyle(btn, i, categories.length);
+                subBar.getChildren().add(btn);
+            }
+
+            ScrollPane scrollPane = new ScrollPane(subBar);
+            scrollPane.setMinHeight(Region.USE_PREF_SIZE);
+            scrollPane.setMinViewportHeight(subBar.prefHeight(-1));
+
+            scrollPane.setFitToHeight(true);
+            scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+            scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+
+            content.getChildren().addFirst(scrollPane);
+
+            group.selectedToggleProperty().addListener((_, _, toggle) -> {
+                if (toggle == null) {
+                    return;
+                }
+                Category cat = (Category) toggle.getUserData();
+                current = cat.values();
+                currentClassName = cat.enumType().getSimpleName();
+                populate();
+                selectLibrary(this);
+            });
+
+            group.selectToggle(group.getToggles().getFirst());
+        }
+
+        @Override
+        String className() {
+            return currentClassName;
+        }
+
+        @Override
+        SVG[] values() {
+            return current;
+        }
+
+        private static void applyPillStyle(ToggleButton btn, int index, int count) {
+            if (count == 1) {
+                btn.getStyleClass().addAll("left-pill", "right-pill");
+            } else if (index == 0) {
+                btn.getStyleClass().add("left-pill");
+            } else if (index == count - 1) {
+                btn.getStyleClass().add("right-pill");
+            } else {
+                btn.getStyleClass().add("center-pill");
+            }
+        }
+
+        /// A named category backed by an SVG enum class.
+        ///
+        /// @param label
+        ///         display text for the toggle button
+        /// @param enumType
+        ///         the enum class, used for [Class#getSimpleName()] in code generation
+        /// @param values
+        ///         the SVG values for this category
+        record Category(String label, Class<?> enumType, SVG[] values) { }
+    }
+
     /// A simple debouncer that delays execution of a [Runnable]
     /// until a specified interval has passed without further calls.
     ///
@@ -263,69 +357,31 @@ public class SvgLibraryExplorer {
         }
     }
 
-    private class FontAwesomeLibrary extends SvgLibrary {
-
-        private SVG[] current = FASolid.values();
-        private String currentClassName = FASolid.class.getSimpleName();
+    private class FontAwesomeLibrary extends CategorizedSvgLibrary {
 
         FontAwesomeLibrary() {
-            ToggleGroup group = new ToggleGroup();
-
-            ToggleButton solidToggle = new ToggleButton("Solid");
-            solidToggle.getStyleClass().add("left-pill");
-            solidToggle.setUserData(FASolid.class);
-
-            ToggleButton regularToggle = new ToggleButton("Regular");
-            regularToggle.getStyleClass().add("center-pill");
-            regularToggle.setUserData(FARegular.class);
-
-            ToggleButton brandToggle = new ToggleButton("Brand");
-            brandToggle.getStyleClass().add("right-pill");
-            brandToggle.setUserData(FABrand.class);
-
-            solidToggle.setToggleGroup(group);
-            regularToggle.setToggleGroup(group);
-            brandToggle.setToggleGroup(group);
-
-            HBox subBar = new HBox(0, solidToggle, regularToggle, brandToggle);
-            subBar.setAlignment(Pos.CENTER_LEFT);
-            subBar.setPadding(new Insets(4));
-
-            content.getChildren().addFirst(subBar);
-
-            group.selectedToggleProperty().addListener((_, _, toggle) -> {
-                if (toggle == null) {
-                    return;
-                }
-                Class<?> cls = (Class<?>) toggle.getUserData();
-                if (cls == FASolid.class) {
-                    current = FASolid.values();
-                } else if (cls == FARegular.class) {
-                    current = FARegular.values();
-                } else if (cls == FABrand.class) {
-                    current = FABrand.values();
-                }
-                currentClassName = cls.getSimpleName();
-                populate();
-                selectLibrary(this);
-            });
-
-            solidToggle.setSelected(true);
-        }
-
-        @Override
-        String className() {
-            return currentClassName;
+            super(new Category("Solid", FASolid.class, FASolid.values()),
+                    new Category("Regular", FARegular.class, FARegular.values()),
+                    new Category("Brand", FABrand.class, FABrand.values()));
         }
 
         @Override
         String name() {
             return "FontAwesome";
         }
+    }
+
+    private class MaterialDesignLibrary extends CategorizedSvgLibrary {
+
+        MaterialDesignLibrary() {
+            super(new Category("Interface", MDIInterface.class, MDIInterface.values()),
+                    new Category("Technology", MDITechnology.class, MDITechnology.values()),
+                    new Category("World", MDIWorld.class, MDIWorld.values()));
+        }
 
         @Override
-        SVG[] values() {
-            return current;
+        String name() {
+            return "Material Design";
         }
     }
 

@@ -7,6 +7,8 @@ import javafx.scene.control.TabPane;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
+import tools.maran.svgnode.SvgNode;
+
 /// Manual test application for [SvgNode] and SVG libraries.
 /// Provides a visual playground (sampler).
 ///
@@ -29,6 +31,7 @@ public class SamplerApp extends Application {
 
         TabPane tabPane = new TabPane(samplerTab, explorerTab);
         Scene scene = new Scene(new StackPane(tabPane), 800, 600);
+
         scene.getStylesheets().add(getClass().getResource("sampler.css").toExternalForm());
         stage.setTitle("SvgNode – Sampler App");
         stage.setScene(scene);

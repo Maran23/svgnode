@@ -150,12 +150,32 @@ public class SvgNode extends Parent {
     }
 
     @Override
+    public double minHeight(double width) {
+        return getSize();
+    }
+
+    @Override
+    public double minWidth(double height) {
+        return getSize();
+    }
+
+    @Override
     public double prefHeight(double width) {
         return getSize();
     }
 
     @Override
     public double prefWidth(double height) {
+        return getSize();
+    }
+
+    @Override
+    protected double computeMinHeight(double width) {
+        return getSize();
+    }
+
+    @Override
+    protected double computeMinWidth(double height) {
         return getSize();
     }
 
@@ -192,7 +212,6 @@ public class SvgNode extends Parent {
 
         SvgContent() {
             getStyleClass().add("svg");
-            setPickOnBounds(false);
 
             svgPath = new SVGPath();
             setShape(svgPath);

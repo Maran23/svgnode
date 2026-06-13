@@ -22,8 +22,8 @@ import tools.maran.svgnode.SvgNode;
 
 /// Sampler for the [SvgNode]:
 ///
-/// - Button Graphic + Transition
-/// - SVG rendering at various sizes
+/// - Label, Button Graphic + Transition
+/// - Static SVGs with Tooltips
 /// - Runtime path swapping
 /// - Runtime color changes
 /// - Runtime resize behavior
@@ -52,11 +52,27 @@ public class SvgNodeSampler {
         view.setPadding(new Insets(8));
         view.setAlignment(Pos.TOP_LEFT);
 
+        addLabels();
         addButtonGraphics();
         addStaticSvgs();
         addSvgPathSwap();
         addSvgColorChange();
         addSvgResize();
+    }
+
+    private void addLabels() {
+        view.getChildren().add(sectionLabel("Labels"));
+
+        Label label = new Label("SVG with text", new SvgNode(HEART));
+        Label label2 = new Label("Green SVG with green text (CSS)", new SvgNode(HEART));
+        label2.getStylesheets().add(toBase64("""
+                .label {
+                    -fx-text-base-color: green;
+                    -fx-text-fill: green;
+                }
+                """));
+
+        view.getChildren().add(new HBox(4, label, label2));
     }
 
     public Node getView() {
@@ -66,7 +82,7 @@ public class SvgNodeSampler {
     private void addButtonGraphics() {
         view.getChildren().add(sectionLabel("Button Graphics automatically adjust"));
 
-        Button buttonLight = createButtonWithCss("Button Light with Dark Hover", """
+        Button buttonLight = createButtonWithCss("Light -> Dark on Hover (CSS)", """
                 .button {
                     -fx-color: #FFFFFF; -fx-background: -fx-color; -fx-background-color: -fx-background;
                 }
@@ -74,21 +90,8 @@ public class SvgNodeSampler {
                     -fx-color: #000000; -fx-background: -fx-color; -fx-background-color: -fx-background;
                 }
                 """);
-        view.getChildren().add(buttonLight);
 
-        Button buttonDark = createButtonWithCss("Button Dark with Light Hover", """
-                .button {
-                    -fx-color: #000000; -fx-background: -fx-color; -fx-background-color: -fx-background;
-                }
-                .button:hover {
-                    -fx-color: #FFFFFF; -fx-background: -fx-color; -fx-background-color: -fx-background;
-                }
-                """);
-        view.getChildren().add(buttonDark);
-
-        view.getChildren().add(sectionLabel("Button Graphics automatically adjust with Transition"));
-
-        buttonLight = createButtonWithCss("Button Light with Dark Hover Transition", """
+        Button buttonLight2 = createButtonWithCss("Light -> Dark on Hover with Transition (CSS)", """
                 .button {
                     -fx-color: #FFFFFF; -fx-background: -fx-color; -fx-background-color: -fx-background;
                     transition-property: -fx-background-color, -fx-text-fill;
@@ -102,9 +105,19 @@ public class SvgNodeSampler {
                     -fx-color: #000000; -fx-background: -fx-color; -fx-background-color: -fx-background;
                 }
                 """);
-        view.getChildren().add(buttonLight);
 
-        buttonDark = createButtonWithCss("Button Dark with Light Hover Transition", """
+        view.getChildren().add(new HBox(4, buttonLight, buttonLight2));
+
+        Button buttonDark = createButtonWithCss("Dark -> Light on Hover (CSS)", """
+                .button {
+                    -fx-color: #000000; -fx-background: -fx-color; -fx-background-color: -fx-background;
+                }
+                .button:hover {
+                    -fx-color: #FFFFFF; -fx-background: -fx-color; -fx-background-color: -fx-background;
+                }
+                """);
+
+        Button buttonDark2 = createButtonWithCss("Dark -> Light on Hover with Transition (CSS)", """
                 .button {
                     -fx-color: #000000; -fx-background: -fx-color; -fx-background-color: -fx-background;
                     transition-property: -fx-background-color;
@@ -118,7 +131,7 @@ public class SvgNodeSampler {
                     -fx-color: #FFFFFF; -fx-background: -fx-color; -fx-background-color: -fx-background;
                 }
                 """);
-        view.getChildren().add(buttonDark);
+        view.getChildren().add(new HBox(4, buttonDark, buttonDark2));
     }
 
     private void addStaticSvgs() {
@@ -129,7 +142,7 @@ public class SvgNodeSampler {
         for (int i = 0; i < ALL_PATHS.length; i++) {
             SvgNode icon = new SvgNode(ALL_PATHS[i]);
             icon.setSvgColor(COLORS[i]);
-            Tooltip.install(icon, new Tooltip("Tooltip"));
+            Tooltip.install(icon, new Tooltip(PATH_NAMES[i]));
             staticRow.getChildren().addAll(icon, new Label(PATH_NAMES[i]));
         }
         view.getChildren().add(staticRow);
