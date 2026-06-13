@@ -4,8 +4,21 @@ A lightweight, optimized JavaFX node for rendering SVG paths at any size. Fully 
 
 ![Sampler](https://github.com/Maran23/svgnode/blob/demo/demo/sampler.webp?raw=true)
 
-| ![FontAwesome](https://github.com/Maran23/svgnode/blob/demo/demo/library_fontawesome.webp?raw=true) | ![Bootstrap](https://github.com/Maran23/svgnode/blob/demo/demo/library_bootstrap.webp?raw=true) |
-|-----------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------|
+<details>
+<summary>Usage with SVG Libraries</summary>
+
+## SVG Libraries
+
+### Material Design
+![Material Design](https://github.com/Maran23/svgnode/blob/demo/demo/library_materialdesign.webp)
+
+### Bootstrap
+![Bootstrap](https://github.com/Maran23/svgnode/blob/demo/demo/library_bootstrap.webp)
+
+### Font Awesome
+![FontAwesome](https://github.com/Maran23/svgnode/blob/demo/demo/library_fontawesome.webp)
+
+</details>
 
 ## Features
 
@@ -19,8 +32,9 @@ A lightweight, optimized JavaFX node for rendering SVG paths at any size. Fully 
 ### With SVG Libraries
 
 Will work fine with SVG Libraries (see usage [below](#use-with-svg-libraries)) such as:
-  - [SVG-FontAwesome](https://github.com/Maran23/svg-fontawesome)
-  - [SVG-Boostrap](https://github.com/Maran23/svg-bootstrap)
+- [SVG-MaterialDesign](https://github.com/Maran23/svg-materialdesign)
+- [SVG-Boostrap](https://github.com/Maran23/svg-bootstrap)
+- [SVG-FontAwesome](https://github.com/Maran23/svg-fontawesome)
 
 ## Requirements
 
@@ -55,11 +69,11 @@ implementation 'tools.maran:svgnode:1.0.0'
 import tools.maran.svgnode.SvgNode;
 
 // Default size (24px)
-SvgNode small = new SvgNode("M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z");
+SvgNode defaultIcon = new SvgNode("M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z");
 
 // Icon with a size and color
-SvgNode icon = new SvgNode("M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z", 32);
-icon.setSvgColor(Color.RED);
+SvgNode icon32 = new SvgNode("M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z", 32);
+icon32.setSvgColor(Color.RED);
 
 // Binding
 SvgNode dynamic = new SvgNode();
@@ -94,26 +108,34 @@ dynamic.sizeProperty().bind(slider.valueProperty());
 
 ```java
 import tools.maran.svgnode.SvgNode;
-import tools.maran.svg.fontawesome.FASolid;
 import tools.maran.svg.bootstrap.Bootstrap;
+import tools.maran.svg.fontawesome.FASolid;
+import tools.maran.svg.materialdesign.MDIInterface;
 
-SvgNode iconFA = new SvgNode(FASolid.HOME.path());
+SvgNode iconMDI = new SvgNode(MDIInterface.HOME.path());
 SvgNode iconBootstrap = new SvgNode(Bootstrap.HOUSE.path());
+SvgNode iconFA = new SvgNode(FASolid.HOME.path());
 ```
 
 ```xml
 <?import tools.maran.svgnode.SvgNode?>
-<?import tools.maran.svg.fontawesome.FASolid?>
 <?import tools.maran.svg.bootstrap.Bootstrap?>
+<?import tools.maran.svg.fontawesome.FASolid?>
+<?import tools.maran.svg.materialdesign.MDIInterface?>
 
 <SvgNode>
     <path>
-        <FASolid fx:constant="HOME"/>
+        <MDIInterface fx:constant="HOME"/>
     </path>
 </SvgNode>
 <SvgNode>
     <path>
         <Bootstrap fx:constant="HOUSE"/>
+    </path>
+</SvgNode>
+<SvgNode>
+    <path>
+        <FASolid fx:constant="HOME"/>
     </path>
 </SvgNode>
 ```
@@ -132,13 +154,11 @@ There are two categories in the sampler.
 
 Shows the functionality of `SvgNode`.
 
-- Using a `SvgNode` as `Button` graphic, showing the automatic color switching based on the text color
+- Using a `SvgNode` as `Label` and `Button` graphic, showing the automatic color switching based on the text color
 - Changing the path, color, and size of the `SvgNode`
 
 ### SVG library explorer
 
 Shows all SVGs in a grid from supported SVG libraries, ready to be explored.
 
-SVG Libraries:
-- [SVG-FontAwesome](https://github.com/Maran23/svg-fontawesome)
-- [SVG-Bootstrap](https://github.com/Maran23/svg-bootstrap)
+Contains all SVG libraries mentioned [above](#svg-libraries)
