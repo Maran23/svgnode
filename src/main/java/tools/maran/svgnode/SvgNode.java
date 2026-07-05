@@ -6,7 +6,6 @@ import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-import javafx.scene.Parent;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.Region;
 import javafx.scene.paint.Paint;
@@ -38,28 +37,28 @@ import javafx.scene.shape.SVGPath;
 /// ```
 ///
 /// @author Marius Hanl
-public class SvgNode extends Parent {
+public class SvgNode extends Region {
 
     private static final double DEFAULT_SIZE = 24.0;
     private static final String DEFAULT_PATH = "";
 
-    private final SvgContent svgContent;
-
     private StringProperty path;
     private DoubleProperty size;
     private ObjectProperty<Paint> svgColor;
+    private final SVGPath svgPath;
 
     /// Creates an empty {@code SvgNode} with no SVG path and the default fit dimensions.
     public SvgNode() {
         getStyleClass().add("svg-node");
 
-        svgContent = new SvgContent();
-        getChildren().setAll(svgContent);
+        svgPath = new SVGPath();
+        setShape(svgPath);
     }
 
     /// Creates an `SvgNode` displaying the given SVG path, rasterized to fit within a square of the default size.
     ///
-    /// @param path the SVG path content (e.g. `"M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"`)
+    /// @param path
+    ///         the SVG path content (e.g. `"M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"`)
     public SvgNode(String path) {
         this();
         setPath(path);
@@ -67,12 +66,37 @@ public class SvgNode extends Parent {
 
     /// Creates an `SvgNode` displaying the given SVG path, rasterized to fit within a square of the specified size.
     ///
-    /// @param path the SVG path content
-    /// @param size the desired width and height in pixels
+    /// @param path
+    ///         the SVG path content
+    /// @param size
+    ///         the desired width and height in pixels
     public SvgNode(String path, double size) {
         this();
         setPath(path);
         setSize(size);
+    }
+
+    public final String getPath() {
+        return path == null ? DEFAULT_PATH : path.get();
+    }
+
+    public final double getSize() {
+        return size == null ? DEFAULT_SIZE : size.get();
+    }
+
+    @Deprecated(forRemoval = true, since = "1.1.0")
+    public final Paint getSvgColor() {
+        return svgColor == null ? null : svgColor.get();
+    }
+
+    @Override
+    public String getUserAgentStylesheet() {
+        return SvgNode.class.getResource("svg-node.css").toExternalForm();
+    }
+
+    @Override
+    public boolean isResizable() {
+        return false;
     }
 
     /// The SVG path content string (e.g. `"M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"`).
@@ -83,19 +107,25 @@ public class SvgNode extends Parent {
             path = new SimpleStringProperty(this, "path", DEFAULT_PATH) {
                 @Override
                 protected void invalidated() {
-                    svgContent.updatePath(get(), getSize());
+                    svgPath.setContent(get());
+                    recalculateBounds();
                 }
             };
         }
         return path;
     }
 
-    public final String getPath() {
-        return path == null ? DEFAULT_PATH : path.get();
-    }
-
     public final void setPath(String value) {
         pathProperty().set(value);
+    }
+
+    public final void setSize(double value) {
+        sizeProperty().set(value);
+    }
+
+    @Deprecated(forRemoval = true, since = "1.1.0")
+    public final void setSvgColor(Paint value) {
+        svgColorProperty().set(value);
     }
 
     /// The target size (width and height) the SVG should be rasterized to.
@@ -110,62 +140,38 @@ public class SvgNode extends Parent {
             size = new SimpleDoubleProperty(this, "size", DEFAULT_SIZE) {
                 @Override
                 protected void invalidated() {
-                    svgContent.updateRasterizedSize(get());
+                    recalculateBounds();
+                    requestLayout();
                 }
             };
         }
         return size;
     }
 
-    public final double getSize() {
-        return size == null ? DEFAULT_SIZE : size.get();
-    }
-
-    public final void setSize(double value) {
-        sizeProperty().set(value);
-    }
-
     /// The fill color of the SVG shape itself.
     ///
     /// @return the svgColor property
+    @Deprecated(forRemoval = true, since = "1.1.0")
     public final ObjectProperty<Paint> svgColorProperty() {
         if (svgColor == null) {
             svgColor = new SimpleObjectProperty<>(this, "svgColor") {
                 @Override
                 protected void invalidated() {
                     final Paint color = get();
-                    svgContent.setBackground(color == null ? null : Background.fill(color));
+                    setBackground(color == null ? null : Background.fill(color));
                 }
             };
         }
         return svgColor;
     }
 
-    public final Paint getSvgColor() {
-        return svgColor == null ? null : svgColor.get();
-    }
-
-    public final void setSvgColor(Paint value) {
-        svgColorProperty().set(value);
-    }
-
     @Override
-    public double minHeight(double width) {
+    protected double computeMaxHeight(double width) {
         return getSize();
     }
 
     @Override
-    public double minWidth(double height) {
-        return getSize();
-    }
-
-    @Override
-    public double prefHeight(double width) {
-        return getSize();
-    }
-
-    @Override
-    public double prefWidth(double height) {
+    protected double computeMaxWidth(double height) {
         return getSize();
     }
 
@@ -189,93 +195,28 @@ public class SvgNode extends Parent {
         return getSize();
     }
 
-    @Override
-    protected void layoutChildren() {
-        double nodeSize = getSize();
+    private void recalculateBounds() {
+        double rasterizedSize = getSize();
 
-        double width = svgContent.prefWidth(nodeSize);
-        double height = svgContent.prefHeight(nodeSize);
-        double x = (nodeSize - width) / 2;
-        double y = (nodeSize - height) / 2;
-        svgContent.resizeRelocate(x, y, width, height);
-    }
+        final double w = svgPath.prefWidth(-1);
+        final double h = svgPath.prefHeight(-1);
 
-    /// A [Region] that uses an [SVGPath] as its shape so that it can be styled and used as normal children.
-    ///
-    /// @author Marius Hanl
-    private static class SvgContent extends Region {
+        double svgWidth;
+        double svgHeight;
 
-        private double svgWidth;
-        private double svgHeight;
-
-        private final SVGPath svgPath;
-
-        SvgContent() {
-            getStyleClass().add("svg");
-
-            svgPath = new SVGPath();
-            setShape(svgPath);
+        double finalW = rasterizedSize * w;
+        double finalH = rasterizedSize * h;
+        if (finalH > finalW) {
+            svgWidth = Math.round(finalW / h);
+            svgHeight = rasterizedSize;
+        } else {
+            svgHeight = Math.round(finalH / w);
+            svgWidth = rasterizedSize;
         }
 
-        void updatePath(String path, double rasterizedSize) {
-            svgPath.setContent(path);
-            calculateSvgSize(rasterizedSize);
-        }
+        double x = (rasterizedSize - svgWidth) / 2;
+        double y = (rasterizedSize - svgHeight) / 2;
 
-        void updateRasterizedSize(double rasterizedSize) {
-            calculateSvgSize(rasterizedSize);
-        }
-
-        @Override
-        protected double computeMaxHeight(double width) {
-            return svgHeight;
-        }
-
-        @Override
-        protected double computeMaxWidth(double height) {
-            return svgWidth;
-        }
-
-        @Override
-        protected double computeMinHeight(double width) {
-            return svgHeight;
-        }
-
-        @Override
-        protected double computeMinWidth(double height) {
-            return svgWidth;
-        }
-
-        @Override
-        protected double computePrefHeight(double width) {
-            return svgHeight;
-        }
-
-        @Override
-        protected double computePrefWidth(double height) {
-            return svgWidth;
-        }
-
-        private void calculateSvgSize(double rasterizedSize) {
-            final double w = svgPath.prefWidth(-1);
-            final double h = svgPath.prefHeight(-1);
-
-            double finalW = rasterizedSize * w;
-            double finalH = rasterizedSize * h;
-            if (finalH > finalW) {
-                svgWidth = Math.round(finalW / h);
-                svgHeight = rasterizedSize;
-            } else {
-                svgHeight = Math.round(finalH / w);
-                svgWidth = rasterizedSize;
-            }
-
-            requestLayout();
-        }
-
-        @Override
-        public String getUserAgentStylesheet() {
-            return SvgNode.class.getResource("svg.css").toExternalForm();
-        }
+        resizeRelocate(x, y, svgWidth, svgHeight);
     }
 }
