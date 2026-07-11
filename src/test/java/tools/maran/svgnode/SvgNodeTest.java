@@ -299,12 +299,12 @@ class SvgNodeTest {
                     svg.minHeight(-1), svg.prefHeight(-1), svg.maxHeight(-1) // height
             };
         });
-        assertEquals(expectedWidth, widthHeightDimensions[0], 1, "svg minWidth");
-        assertEquals(expectedWidth, widthHeightDimensions[1], 1, "svg prefWidth");
-        assertEquals(expectedWidth, widthHeightDimensions[2], 1, "svg maxWidth");
-        assertEquals(expectedHeight, widthHeightDimensions[3], 1, "svg minHeight");
-        assertEquals(expectedHeight, widthHeightDimensions[4], 1, "svg prefHeight");
-        assertEquals(expectedHeight, widthHeightDimensions[5], 1, "svg maxHeight");
+        assertEquals(expectedWidth, widthHeightDimensions[0], EPS, "svg minWidth");
+        assertEquals(expectedWidth, widthHeightDimensions[1], EPS, "svg prefWidth");
+        assertEquals(expectedWidth, widthHeightDimensions[2], EPS, "svg maxWidth");
+        assertEquals(expectedHeight, widthHeightDimensions[3], EPS, "svg minHeight");
+        assertEquals(expectedHeight, widthHeightDimensions[4], EPS, "svg prefHeight");
+        assertEquals(expectedHeight, widthHeightDimensions[5], EPS, "svg maxHeight");
     }
 
     private static Scene createScene(SvgNode node) {
