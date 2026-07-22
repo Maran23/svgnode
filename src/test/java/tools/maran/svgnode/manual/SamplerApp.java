@@ -29,12 +29,17 @@ public class SamplerApp extends Application {
         explorerTab.setContent(new SvgLibraryExplorer().getView());
         explorerTab.setClosable(false);
 
-        TabPane tabPane = new TabPane(samplerTab, explorerTab);
-        Scene scene = new Scene(new StackPane(tabPane), 800, 600);
+        TabPane tabPane = new TabPane();
+        tabPane.getSelectionModel().selectedItemProperty().addListener(_ -> setTitle(stage, tabPane));
+        tabPane.getTabs().setAll(samplerTab, explorerTab);
 
+        Scene scene = new Scene(new StackPane(tabPane), 800, 600);
         scene.getStylesheets().add(getClass().getResource("sampler.css").toExternalForm());
-        stage.setTitle("SvgNode – Sampler App");
         stage.setScene(scene);
         stage.show();
+    }
+
+    private void setTitle(Stage stage, TabPane tabPane) {
+        stage.setTitle(tabPane.getSelectionModel().getSelectedItem().getText());
     }
 }

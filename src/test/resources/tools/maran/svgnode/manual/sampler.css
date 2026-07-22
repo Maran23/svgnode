@@ -141,6 +141,15 @@
     -fx-border-width: 1 1 1 0.5;
 }
 
+/* SvgNode Sampler */
+
+.header {
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+}
+
+/* Svg Library Explorer */
+
 .svg-button {
     -fx-color: -surface;
     -fx-background-color: -surface;
@@ -162,11 +171,6 @@
     -fx-color: -surface-pressed;
     -fx-background-color: -surface-pressed;
     -fx-border-color: -border-hover;
-}
-
-.header {
-    -fx-font-weight: bold;
-    -fx-font-size: 14px;
 }
 
 .content-area {

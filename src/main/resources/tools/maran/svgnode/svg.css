@@ -1,3 +1,9 @@
+/*
+ * Based on modena.css.
+ * If the stylesheet ever changes, this might not be a good idea anymore.
+ * We style .svg directly so that CSS code by the developer will always override the properties.
+ * This should be treated as a sensible default.
+ */
 .svg {
     -fx-background-color: -fx-text-base-color;
 }
