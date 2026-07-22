@@ -13,13 +13,12 @@ import javafx.css.StyleableStringProperty;
 import javafx.css.converter.PaintConverter;
 import javafx.css.converter.SizeConverter;
 import javafx.css.converter.StringConverter;
-import javafx.scene.Parent;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.Region;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.SVGPath;
 
-/// Node to show an SVG path with the specified size.
+/// Node to show an SVG path with the specified size and color.
 ///
 /// # Java usage
 ///
@@ -55,7 +54,7 @@ import javafx.scene.shape.SVGPath;
 /// ```
 ///
 /// @author Marius Hanl
-public class SvgNode extends Parent {
+public class SvgNode extends Region {
 
     private static final double DEFAULT_SIZE = 24.0;
     private static final String DEFAULT_PATH = "";
@@ -220,54 +219,47 @@ public class SvgNode extends Parent {
     }
 
     @Override
-    public double minHeight(double width) {
-        return getSize();
-    }
-
-    @Override
-    public double minWidth(double height) {
-        return getSize();
-    }
-
-    @Override
-    public double prefHeight(double width) {
-        return getSize();
-    }
-
-    @Override
-    public double prefWidth(double height) {
-        return getSize();
-    }
-
-    @Override
     protected double computeMinHeight(double width) {
-        return getSize();
+        return snappedTopInset() + getSize() + snappedBottomInset();
     }
 
     @Override
     protected double computeMinWidth(double height) {
-        return getSize();
+        return snappedLeftInset() + getSize() + snappedRightInset();
     }
 
     @Override
     protected double computePrefHeight(double width) {
-        return getSize();
+        return snappedTopInset() + getSize() + snappedBottomInset();
     }
 
     @Override
     protected double computePrefWidth(double height) {
-        return getSize();
+        return snappedLeftInset() + getSize() + snappedRightInset();
+    }
+
+    @Override
+    protected double computeMaxHeight(double width) {
+        return snappedTopInset() + getSize() + snappedBottomInset();
+    }
+
+    @Override
+    protected double computeMaxWidth(double height) {
+        return snappedLeftInset() + getSize() + snappedRightInset();
     }
 
     @Override
     protected void layoutChildren() {
-        double nodeSize = getSize();
+        double left = getInsets().getLeft();
+        double top = getInsets().getTop();
+        double contentWidth = getWidth() - left - getInsets().getRight();
+        double contentHeight = getHeight() - top - getInsets().getBottom();
 
         double width = svgContent.svgWidth;
         double height = svgContent.svgHeight;
-        double x = (nodeSize - width) / 2;
-        double y = (nodeSize - height) / 2;
-        svgContent.resizeRelocate(x, y, width, height);
+        double x = left + (contentWidth - width) / 2;
+        double y = top + (contentHeight - height) / 2;
+        svgContent.resizeRelocate(snapPositionX(x), snapPositionY(y), width, height);
     }
 
     /// Gets the {@code CssMetaData} associated with this class.
@@ -327,7 +319,7 @@ public class SvgNode extends Parent {
         private static final List<CssMetaData<? extends Styleable, ?>> STYLEABLES;
 
         static {
-            List<CssMetaData<? extends Styleable, ?>> metadata = Parent.getClassCssMetaData();
+            List<CssMetaData<? extends Styleable, ?>> metadata = Region.getClassCssMetaData();
             final List<CssMetaData<? extends Styleable, ?>> styleables = new ArrayList<>(metadata.size() + 3);
             styleables.addAll(metadata);
             styleables.add(PATH);
