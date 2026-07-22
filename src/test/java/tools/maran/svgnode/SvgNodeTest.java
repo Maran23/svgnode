@@ -56,7 +56,7 @@ class SvgNodeTest {
     @DisplayName("Changing path at runtime swaps the rendered shape")
     void testChangePath() throws Exception {
         SvgNode node = new SvgNode(SQUARE, 48);
-        node.setSvgColor(Color.RED);
+        node.setColor(Color.RED);
 
         WritableImage image = showAndSnapshot(node);
         assertSvgDimensions(node, 48, 48);
@@ -78,7 +78,7 @@ class SvgNodeTest {
     @DisplayName("Changing size at runtime rescales the SVG content")
     void testChangeSize() throws Exception {
         SvgNode node = new SvgNode(SQUARE, 24);
-        node.setSvgColor(Color.RED);
+        node.setColor(Color.RED);
 
         WritableImage smallImage = showAndSnapshot(node);
         assertSvgDimensions(node, 24, 24);
@@ -98,12 +98,12 @@ class SvgNodeTest {
     @DisplayName("Changing SvgNode color at runtime updates rendered pixels")
     void testColorChange() throws Exception {
         SvgNode node = new SvgNode(SQUARE, 24);
-        node.setSvgColor(Color.RED);
+        node.setColor(Color.RED);
 
         WritableImage image = showAndSnapshot(node);
         assertPixelsColor(image, Color.RED);
 
-        node.setSvgColor(Color.GREEN);
+        node.setColor(Color.GREEN);
         image = showAndSnapshot(node);
         assertPixelsColor(image, Color.GREEN);
     }
@@ -112,13 +112,13 @@ class SvgNodeTest {
     @DisplayName("Setting SVG color to null clears fill to transparent")
     void testColorToNull() throws Exception {
         SvgNode node = new SvgNode(SQUARE, 24);
-        node.setSvgColor(Color.RED);
+        node.setColor(Color.RED);
 
         WritableImage image = showAndSnapshot(node);
         assertPixelsColor(image, Color.RED);
 
         runOnFxThread(() -> {
-            node.setSvgColor(null);
+            node.setColor(null);
             return null;
         });
 
@@ -142,7 +142,7 @@ class SvgNodeTest {
         SvgNode node = new SvgNode();
 
         assertEquals("", node.getPath());
-        assertNull(node.getSvgColor());
+        assertNull(node.getColor());
         assertEquals(24, node.getSize());
 
         assertEquals(24, node.minWidth(-1));
@@ -161,11 +161,11 @@ class SvgNodeTest {
         assertEquals("M 0 0z", node.getPath());
 
         // Initialize property but do not use yet.
-        ObjectProperty<Paint> colorProperty = node.svgColorProperty();
-        assertNull(node.getSvgColor());
+        ObjectProperty<Paint> colorProperty = node.colorProperty();
+        assertNull(node.getColor());
 
         colorProperty.set(Color.RED);
-        assertEquals(Color.RED, node.getSvgColor());
+        assertEquals(Color.RED, node.getColor());
 
         // Initialize property but do not use yet.
         DoubleProperty sizeProperty = node.sizeProperty();
@@ -187,7 +187,7 @@ class SvgNodeTest {
     @DisplayName("Horizontal 2:1 rect scales width to size and centers vertically")
     void testHorizontalRect() throws Exception {
         SvgNode node = new SvgNode(RECT_HORIZONTAL, 48);
-        node.setSvgColor(Color.RED);
+        node.setColor(Color.RED);
 
         WritableImage image = showAndSnapshot(node);
 
@@ -201,7 +201,7 @@ class SvgNodeTest {
     @DisplayName("Square SVG at 32px renders solid blue")
     void testSquareBlue32() throws Exception {
         SvgNode node = new SvgNode(SQUARE, 32);
-        node.setSvgColor(Color.BLUE);
+        node.setColor(Color.BLUE);
 
         WritableImage image = showAndSnapshot(node);
 
@@ -224,7 +224,7 @@ class SvgNodeTest {
     @DisplayName("Square at 64px renders solid green")
     void testSquareGreen64() throws Exception {
         SvgNode node = new SvgNode(SQUARE, 64);
-        node.setSvgColor(Color.GREEN);
+        node.setColor(Color.GREEN);
 
         WritableImage image = showAndSnapshot(node);
 
@@ -236,7 +236,7 @@ class SvgNodeTest {
     @DisplayName("Square at 48px renders solid red")
     void testSquareRed48() throws Exception {
         SvgNode node = new SvgNode(SQUARE, 48);
-        node.setSvgColor(Color.RED);
+        node.setColor(Color.RED);
 
         WritableImage image = showAndSnapshot(node);
 
@@ -248,7 +248,7 @@ class SvgNodeTest {
     @DisplayName("Vertical 1:2 rect scales height to size and centers horizontally")
     void testVerticalRect() throws Exception {
         SvgNode node = new SvgNode(RECT_VERTICAL, 48);
-        node.setSvgColor(Color.BLUE);
+        node.setColor(Color.BLUE);
 
         WritableImage image = showAndSnapshot(node);
 
@@ -279,9 +279,12 @@ class SvgNodeTest {
         for (int y = y1; y < y2; y++) {
             for (int x = x1; x < x2; x++) {
                 Color actual = reader.getColor(x, y);
-                assertEquals(expected.getRed(), actual.getRed(), EPS, "red mismatch at (%d,%d)".formatted(x, y));
-                assertEquals(expected.getGreen(), actual.getGreen(), EPS, "green mismatch at (%d,%d)".formatted(x, y));
-                assertEquals(expected.getBlue(), actual.getBlue(), EPS, "blue mismatch at (%d,%d)".formatted(x, y));
+                assertEquals(expected.getRed(), actual.getRed(), EPS,
+                        "red mismatch at (%d,%d)".formatted(x, y));
+                assertEquals(expected.getGreen(), actual.getGreen(), EPS,
+                        "green mismatch at (%d,%d)".formatted(x, y));
+                assertEquals(expected.getBlue(), actual.getBlue(), EPS,
+                        "blue mismatch at (%d,%d)".formatted(x, y));
                 assertEquals(expected.getOpacity(), actual.getOpacity(), EPS,
                         "opacity mismatch at (%d,%d)".formatted(x, y));
             }
@@ -307,7 +310,7 @@ class SvgNodeTest {
         assertEquals(expectedHeight, widthHeightDimensions[5], EPS, "svg maxHeight");
     }
 
-    private static Scene createScene(SvgNode node) {
+    private static Scene useScene(SvgNode node) {
         if (node.getScene() != null) {
             return node.getScene();
         }
@@ -333,7 +336,7 @@ class SvgNodeTest {
 
     private static WritableImage showAndSnapshot(SvgNode node) throws Exception {
         return runOnFxThread(() -> {
-            Scene scene = createScene(node);
+            Scene scene = useScene(node);
             return scene.snapshot(null);
         });
     }

@@ -42,6 +42,7 @@ import tools.maran.svg.materialdesign.MDIWorld;
 import tools.maran.svgnode.SvgNode;
 
 /// An SVG explorer that displays all available SVGs from a library in a searchable, browsable grid.
+/// All SVGs are rendered with the [SvgNode].
 ///
 /// Supported libraries:
 /// - Material Design (Interface / Technology / World)

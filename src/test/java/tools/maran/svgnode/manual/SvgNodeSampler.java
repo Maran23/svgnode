@@ -2,6 +2,7 @@ package tools.maran.svgnode.manual;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.List;
 import java.util.function.Consumer;
 
 import javafx.geometry.Insets;
@@ -37,19 +38,36 @@ public class SvgNodeSampler {
     private static final String STAR = "M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z";
     private static final String HEART = "M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z";
 
-    private static final String[] ALL_PATHS = { HOME, MAIL, FILTER, STAR, HEART };
-    private static final String[] PATH_NAMES = { "Home", "Mail", "Filter", "Star", "Heart" };
-    private static final Color[] COLORS = { Color.DODGERBLUE, Color.CRIMSON, Color.FORESTGREEN, Color.ORANGE,
-            Color.MEDIUMPURPLE };
-    private static final String[] COLOR_NAMES = { "Blue", "Red", "Green", "Orange", "Purple" };
-    private static final Double[] SIZES = { 16d, 24d, 32d, 48d, 64d, 128d };
-    private static final String[] SIZE_LABELS = { "16px", "24px", "32px", "48px", "64px", "128px" };
+    private static final List<Named<String>> PATHS = List.of(
+            new Named<>("Home", HOME),
+            new Named<>("Mail", MAIL),
+            new Named<>("Filter", FILTER),
+            new Named<>("Star", STAR),
+            new Named<>("Heart", HEART)
+    );
+
+    private static final List<Named<Color>> COLORS = List.of(
+            new Named<>("Blue", Color.DODGERBLUE),
+            new Named<>("Red", Color.CRIMSON),
+            new Named<>("Green", Color.FORESTGREEN),
+            new Named<>("Orange", Color.ORANGE),
+            new Named<>("Purple", Color.MEDIUMPURPLE)
+    );
+
+    private static final List<Named<Double>> SIZES = List.of(
+            new Named<>("16px", 16d),
+            new Named<>("24px", 24d),
+            new Named<>("32px", 32d),
+            new Named<>("48px", 48d),
+            new Named<>("64px", 64d),
+            new Named<>("128px", 128d)
+    );
 
     private final VBox view;
 
     public SvgNodeSampler() {
-        view = new VBox(8);
-        view.setPadding(new Insets(8));
+        view = new VBox(4);
+        view.setPadding(new Insets(4));
         view.setAlignment(Pos.TOP_LEFT);
 
         addLabels();
@@ -58,21 +76,6 @@ public class SvgNodeSampler {
         addSvgPathSwap();
         addSvgColorChange();
         addSvgResize();
-    }
-
-    private void addLabels() {
-        view.getChildren().add(sectionLabel("Labels"));
-
-        Label label = new Label("SVG with text", new SvgNode(HEART));
-        Label label2 = new Label("Green SVG with green text (CSS)", new SvgNode(HEART));
-        label2.getStylesheets().add(toBase64("""
-                .label {
-                    -fx-text-base-color: green;
-                    -fx-text-fill: green;
-                }
-                """));
-
-        view.getChildren().add(new HBox(4, label, label2));
     }
 
     public Node getView() {
@@ -134,16 +137,42 @@ public class SvgNodeSampler {
         view.getChildren().add(new HBox(4, buttonDark, buttonDark2));
     }
 
+    private void addLabels() {
+        view.getChildren().add(sectionLabel("Label and SvgNode styled with CSS (+hover effect)"));
+
+        Label label = new Label("SVG with text", new SvgNode(HEART));
+
+        SvgNode svgNodeHover = new SvgNode();
+        svgNodeHover.getStylesheets().add(toBase64("""
+                .svg-node {
+                    -fx-path: "M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z";
+                    -fx-size: 24;
+                    -fx-color: red;
+                }
+                
+                .svg-node:hover {
+                    -fx-path: "M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z";
+                    -fx-size: 32;
+                    -fx-color: blue;
+                }
+                """));
+
+        view.getChildren().add(new HBox(4, label, svgNodeHover));
+    }
+
     private void addStaticSvgs() {
         view.getChildren().addAll(new Separator(), sectionLabel("Static icons with Tooltip (24px)"));
 
         HBox staticRow = new HBox(12);
         staticRow.setAlignment(Pos.CENTER_LEFT);
-        for (int i = 0; i < ALL_PATHS.length; i++) {
-            SvgNode icon = new SvgNode(ALL_PATHS[i]);
-            icon.setSvgColor(COLORS[i]);
-            Tooltip.install(icon, new Tooltip(PATH_NAMES[i]));
-            staticRow.getChildren().addAll(icon, new Label(PATH_NAMES[i]));
+        for (int i = 0; i < PATHS.size(); i++) {
+            Named<String> path = PATHS.get(i);
+            Named<Color> color = COLORS.get(i);
+
+            SvgNode icon = new SvgNode(path.value());
+            icon.setColor(color.value());
+            Tooltip.install(icon, new Tooltip(path.label()));
+            staticRow.getChildren().addAll(icon, new Label(path.label()));
         }
         view.getChildren().add(staticRow);
     }
@@ -152,9 +181,9 @@ public class SvgNodeSampler {
         view.getChildren().addAll(new Separator(), sectionLabel("Runtime color change"));
 
         SvgNode colorTarget = new SvgNode(HEART, 40);
-        colorTarget.setSvgColor(Color.CRIMSON);
+        colorTarget.setColor(Color.CRIMSON);
 
-        HBox toggleBar = createToggleBar(COLORS, COLOR_NAMES, 1, colorTarget::setSvgColor);
+        HBox toggleBar = createToggleBar(COLORS, 1, colorTarget::setColor);
         view.getChildren().add(new HBox(12, colorTarget, toggleBar));
     }
 
@@ -162,9 +191,9 @@ public class SvgNodeSampler {
         view.getChildren().addAll(new Separator(), sectionLabel("Runtime path swap"));
 
         SvgNode swappable = new SvgNode(HOME, 32);
-        swappable.setSvgColor(Color.DODGERBLUE);
+        swappable.setColor(Color.DODGERBLUE);
 
-        HBox toggleBar = createToggleBar(ALL_PATHS, PATH_NAMES, 0, swappable::setPath);
+        HBox toggleBar = createToggleBar(PATHS, 0, swappable::setPath);
         view.getChildren().add(new HBox(12, swappable, toggleBar));
     }
 
@@ -172,20 +201,20 @@ public class SvgNodeSampler {
         view.getChildren().addAll(new Separator(), sectionLabel("Runtime resize"));
 
         SvgNode resizable = new SvgNode(STAR, 24);
-        resizable.setSvgColor(Color.ORANGE);
+        resizable.setColor(Color.ORANGE);
 
-        HBox toggleBar = createToggleBar(SIZES, SIZE_LABELS, 1, resizable::setSize);
-        view.getChildren().add(new HBox(12, resizable, toggleBar));
+        HBox toggleBar = createToggleBar(SIZES, 1, resizable::setSize);
+        view.getChildren().add(new VBox(4, toggleBar, resizable));
     }
 
     private Button createButtonWithCss(String text, String css) {
-        Button buttonLight = new Button(text, new SvgNode(HEART));
-        buttonLight.setCursor(Cursor.HAND);
-        buttonLight.getStylesheets().add(toBase64(css));
-        return buttonLight;
+        Button button = new Button(text, new SvgNode(HEART));
+        button.setCursor(Cursor.HAND);
+        button.getStylesheets().add(toBase64(css));
+        return button;
     }
 
-    private <T> HBox createToggleBar(T[] values, String[] labels, int defaultIndex, Consumer<T> onSelect) {
+    private <T> HBox createToggleBar(List<Named<T>> items, int defaultIndex, Consumer<T> onSelect) {
         HBox box = new HBox(0);
         box.setAlignment(Pos.CENTER_LEFT);
 
@@ -197,14 +226,15 @@ public class SvgNodeSampler {
             onSelect.accept((T) toggle.getUserData());
         });
 
-        for (int i = 0; i < values.length; i++) {
-            ToggleButton btn = new ToggleButton(labels[i]);
-            btn.setUserData(values[i]);
+        for (int i = 0; i < items.size(); i++) {
+            Named<T> item = items.get(i);
+            ToggleButton btn = new ToggleButton(item.label());
+            btn.setUserData(item.value());
             btn.setToggleGroup(group);
 
             if (i == 0) {
                 btn.getStyleClass().add("left-pill");
-            } else if (i == values.length - 1) {
+            } else if (i == items.size() - 1) {
                 btn.getStyleClass().add("right-pill");
             } else {
                 btn.getStyleClass().add("center-pill");
@@ -226,4 +256,6 @@ public class SvgNodeSampler {
     private static String toBase64(String css) {
         return "data:base64," + Base64.getUrlEncoder().encodeToString(css.getBytes(StandardCharsets.UTF_8));
     }
+
+    private record Named<T>(String label, T value) { }
 }
