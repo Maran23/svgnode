@@ -15,6 +15,10 @@ import javafx.scene.control.Separator;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.Tooltip;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.Border;
+import javafx.scene.layout.BorderStroke;
+import javafx.scene.layout.BorderStrokeStyle;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -138,7 +142,7 @@ public class SvgNodeSampler {
     }
 
     private void addLabels() {
-        view.getChildren().add(sectionLabel("Label and SvgNode styled with CSS (+hover effect)"));
+        view.getChildren().add(sectionLabel("Usage with Label, CSS (Hover), Background, Border"));
 
         Label label = new Label("SVG with text", new SvgNode(HEART));
 
@@ -157,7 +161,12 @@ public class SvgNodeSampler {
                 }
                 """));
 
-        view.getChildren().add(new HBox(4, label, svgNodeHover));
+        SvgNode svgNodeBg = new SvgNode(HEART);
+        svgNodeBg.setColor(Color.RED);
+        svgNodeBg.setBackground(Background.fill(Color.MISTYROSE));
+        svgNodeBg.setBorder( new Border(new BorderStroke(Color.LIGHTGREEN, BorderStrokeStyle.SOLID, null, BorderStroke.THICK)));
+
+        view.getChildren().add(new HBox(4, label, svgNodeHover, svgNodeBg));
     }
 
     private void addStaticSvgs() {

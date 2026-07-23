@@ -39,8 +39,7 @@ A lightweight, optimized JavaFX node for rendering SVG paths at any size. Fully 
 
 - 🎨 Render any SVG path as a JavaFX node
 - 🔗 No dependencies - will use your provided JavaFX runtime
-- ⚡ Optimized to be efficient and have a tiny footprint, so you can render 100 `SvgNode` without any problem. 
-  - This is achieved by `SvgNode` extending from `Parent`, skipping size calculations and only initializing properties when needed
+- ⚡ Optimized to be efficient and have a tiny footprint, so you can render 1000 `SvgNode` instances without any problem. 
 - 📐 Uniform rasterization with a single `size` property
 - 📄 FXML-compatible with attribute and constant-based usage
 - 🎭 CSS-stylable via `.svg-node` and `.svg` style classes. By default, the SVG automatically adjusts its color based on the background - just like text
@@ -217,11 +216,35 @@ The API of `SvgNode` matches what is the de-facto standard for SVG libraries, in
 
 #### Changelog
 
-> Version 2.0.0
+##### Version 2.0.0
 
 - Made all properties CSS styleable. This is especially interesting together with CSS transitions.
 - Renamed `svgColor` to `color`. This is a breaking change. See the naming above why this was done.
+- Extend from `Region`. Initially, `SvgNode` extended from `Parent` but unfortunately the JavaFX API will be against you.
+You can influence the layout bounds calculation, it simply is not public. JavaFX will then try to derive the layout bounds from the children, which is not what we want.
+This will lead to a wrong positioning in some cases where the SVG is more rectangular. It also results in a weird double layout, which is not the case with `Region`
+  - Advantage: We can set a background and border. Performance is the same.
 
-> Version 1.0.0
+Example:
+
+```text
++-------------------------------+
+|            SvgNode            |
+|             24x24             |
++-------------------------------+
+|              SVG              |
+|             24x12             |
++-------------------------------+
+|            SvgNode            |
+|             24x24             |
++-------------------------------+
+```
+
+Here, the layout bounds should be 24x24, but will be calculated as 24x12 because of the inner SVG.
+
+The idea is that the `SvgNode` has always the same width and height and will adjust the inner SVG to be centered.
+This works fine, but as soon as other nodes use the layout bounds for the calculation (which is done sometimes), it will be wrong, not honoring the pref size.
+
+##### Version 1.0.0
 
 - Initial release
