@@ -7,6 +7,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import javafx.application.Application;
@@ -32,6 +33,9 @@ import org.junit.jupiter.api.Test;
 /// @author Marius Hanl
 class SvgNodeTest {
 
+    /// The maximum time we wait for an action on the JavaFX application thread to be finished.
+    private static final long TIMEOUT_SECONDS = 30;
+
     /// Small epsilon for color assertions.
     private static final double EPS = 10e-6;
     /// Square - 24x24.
@@ -45,11 +49,18 @@ class SvgNodeTest {
     static void initToolkit() {
         System.setProperty("glass.platform", "Headless");
         System.setProperty("prism.order", "sw");
-        Platform.startup(() -> Application.setUserAgentStylesheet(toBase64("""
+
+        CountDownLatch latch = new CountDownLatch(1);
+        Platform.startup(() -> {
+            Application.setUserAgentStylesheet(toBase64("""
                 .root {
                     -fx-text-base-color: black;
                 }
-                """)));
+                """));
+            latch.countDown();
+        });
+
+        await(latch);
     }
 
     @Test
@@ -343,5 +354,17 @@ class SvgNodeTest {
 
     private static String toBase64(String css) {
         return "data:base64," + Base64.getUrlEncoder().encodeToString(css.getBytes(StandardCharsets.UTF_8));
+    }
+
+    private static void await(CountDownLatch latch) {
+        try {
+            if (!latch.await(TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
+                throw new IllegalStateException(
+                        "The JavaFX application thread did not finish within " + TIMEOUT_SECONDS + " seconds.");
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException("Interrupted while waiting for the JavaFX application thread.", e);
+        }
     }
 }
