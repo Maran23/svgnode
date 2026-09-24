@@ -87,8 +87,8 @@ public class SvgNode extends Region {
     /// @param size the desired width and height in pixels
     public SvgNode(String path, double size) {
         this();
-        setPath(path);
         setSize(size);
+        setPath(path);
     }
 
     /// The SVG path content string (e.g. `"M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"`).
@@ -347,6 +347,10 @@ public class SvgNode extends Region {
         }
 
         void updatePath(String path, double rasterizedSize) {
+            if (path == null) {
+                path = "";
+            }
+
             svgPath.setContent(path);
             calculateSvgSize(rasterizedSize);
         }
@@ -389,7 +393,10 @@ public class SvgNode extends Region {
             final double w = svgPath.prefWidth(-1);
             final double h = svgPath.prefHeight(-1);
 
-            if (h > w) {
+            if (w == h) {
+                svgWidth = rasterizedSize;
+                svgHeight = rasterizedSize;
+            } else if (h > w) {
                 double finalW = rasterizedSize * w;
                 svgWidth = snapSizeX(finalW / h);
                 svgHeight = rasterizedSize;

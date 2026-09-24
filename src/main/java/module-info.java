@@ -2,7 +2,7 @@
 ///
 /// @author Marius Hanl
 module tools.maran.svgnode {
-    requires javafx.graphics;
+    requires transitive javafx.graphics;
 
     exports tools.maran.svgnode;
 }

@@ -14,6 +14,9 @@ import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
@@ -138,6 +141,63 @@ class SvgNodeTest {
     }
 
     @Test
+    @DisplayName("Path, size and color are applied from a stylesheet")
+    void testCss() throws Exception {
+        SvgNode node = new SvgNode();
+        node.getStylesheets().add(toBase64("""
+                .svg-node {
+                    -fx-path: "M0 6h24v12H0z";
+                    -fx-size: 48;
+                    -fx-color: red;
+                }
+                """));
+
+        WritableImage image = showAndSnapshot(node);
+
+        assertEquals(RECT_HORIZONTAL, node.getPath());
+        assertEquals(48, node.getSize());
+        assertEquals(Color.RED, node.getColor());
+        assertSvgDimensions(node, 48, 24);
+        assertPixelsColor(image, Color.TRANSPARENT, new Rectangle2D(0, 0, 48, 12));
+        assertPixelsColor(image, Color.RED, new Rectangle2D(0, 12, 48, 24));
+        assertPixelsColor(image, Color.TRANSPARENT, new Rectangle2D(0, 36, 48, 12));
+    }
+
+    @Test
+    @DisplayName("CSS does not override bound properties")
+    void testCssIgnoredWhenBound() throws Exception {
+        SvgNode node = new SvgNode();
+        node.pathProperty().bind(new SimpleStringProperty(SQUARE));
+        node.sizeProperty().bind(new SimpleDoubleProperty(48));
+        node.colorProperty().bind(new SimpleObjectProperty<>(Color.RED));
+        node.setStyle("-fx-path: \"%s\"; -fx-size: 32; -fx-color: blue;".formatted(RECT_VERTICAL));
+
+        WritableImage image = showAndSnapshot(node);
+
+        assertEquals(SQUARE, node.getPath());
+        assertEquals(48, node.getSize());
+        assertEquals(Color.RED, node.getColor());
+        assertSvgDimensions(node, 48, 48);
+        assertPixelsColor(image, Color.RED);
+    }
+
+    @Test
+    @DisplayName("Inline style overrides values set in code")
+    void testCssInlineOverridesSetValues() throws Exception {
+        SvgNode node = new SvgNode(RECT_VERTICAL, 24);
+        node.setColor(Color.RED);
+        node.setStyle("-fx-path: \"%s\"; -fx-size: 48; -fx-color: blue;".formatted(SQUARE));
+
+        WritableImage image = showAndSnapshot(node);
+
+        assertEquals(SQUARE, node.getPath());
+        assertEquals(48, node.getSize());
+        assertEquals(Color.BLUE, node.getColor());
+        assertSvgDimensions(node, 48, 48);
+        assertPixelsColor(image, Color.BLUE);
+    }
+
+    @Test
     @DisplayName("Empty SvgNode renders fully transparent")
     void testDefault() throws Exception {
         SvgNode node = new SvgNode();
@@ -192,6 +252,17 @@ class SvgNodeTest {
         assertEquals(32, node.minHeight(-1));
         assertEquals(32, node.prefHeight(-1));
         assertEquals(32, node.computePrefHeight(-1));
+
+        assertEquals(node, pathProperty.getBean());
+        assertEquals("path", pathProperty.getName());
+        assertEquals(node, colorProperty.getBean());
+        assertEquals("color", colorProperty.getName());
+        assertEquals(node, sizeProperty.getBean());
+        assertEquals("size", sizeProperty.getName());
+
+        assertEquals("-fx-path", node.pathProperty().getCssMetaData().getProperty());
+        assertEquals("-fx-color", node.colorProperty().getCssMetaData().getProperty());
+        assertEquals("-fx-size", node.sizeProperty().getCssMetaData().getProperty());
     }
 
     @Test
@@ -206,6 +277,19 @@ class SvgNodeTest {
         assertPixelsColor(image, Color.TRANSPARENT, new Rectangle2D(0, 0, 48, 12));
         assertPixelsColor(image, Color.RED, new Rectangle2D(0, 12, 48, 24));
         assertPixelsColor(image, Color.TRANSPARENT, new Rectangle2D(0, 36, 48, 12));
+    }
+
+    @Test
+    @DisplayName("Null path renders fully transparent")
+    void testNullPath() throws Exception {
+        SvgNode node = new SvgNode(SQUARE);
+        node.setColor(Color.RED);
+        node.setPath(null);
+
+        WritableImage image = showAndSnapshot(node);
+
+        assertNull(node.getPath());
+        assertPixelsColor(image, Color.TRANSPARENT);
     }
 
     @Test
@@ -321,16 +405,16 @@ class SvgNodeTest {
         assertEquals(expectedHeight, widthHeightDimensions[5], EPS, "svg maxHeight");
     }
 
-    private static Scene useScene(SvgNode node) {
-        if (node.getScene() != null) {
-            return node.getScene();
+    private static void await(CountDownLatch latch) {
+        try {
+            if (!latch.await(TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
+                throw new IllegalStateException(
+                        "The JavaFX application thread did not finish within " + TIMEOUT_SECONDS + " seconds.");
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException("Interrupted while waiting for the JavaFX application thread.", e);
         }
-
-        StackPane pane = new StackPane(node);
-        Scene scene = new Scene(pane, node.getSize(), node.getSize());
-        scene.setFill(Color.TRANSPARENT);
-        applyAndLayout(scene);
-        return scene;
     }
 
     private static <T> T runOnFxThread(Callable<T> action) throws Exception {
@@ -356,15 +440,15 @@ class SvgNodeTest {
         return "data:base64," + Base64.getUrlEncoder().encodeToString(css.getBytes(StandardCharsets.UTF_8));
     }
 
-    private static void await(CountDownLatch latch) {
-        try {
-            if (!latch.await(TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
-                throw new IllegalStateException(
-                        "The JavaFX application thread did not finish within " + TIMEOUT_SECONDS + " seconds.");
-            }
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new IllegalStateException("Interrupted while waiting for the JavaFX application thread.", e);
+    private static Scene useScene(SvgNode node) {
+        if (node.getScene() != null) {
+            return node.getScene();
         }
+
+        StackPane pane = new StackPane(node);
+        Scene scene = new Scene(pane);
+        scene.setFill(Color.TRANSPARENT);
+        applyAndLayout(scene);
+        return scene;
     }
 }
