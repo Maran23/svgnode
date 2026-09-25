@@ -103,7 +103,7 @@
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <version>3.12.0</version>
                 <configuration>
-                    <failOnError>false</failOnError>
+                    <failOnError>true</failOnError>
                     <windowtitle>SVGNode API</windowtitle>
                     <docfilessubdirs>true</docfilessubdirs>
                 </configuration>
