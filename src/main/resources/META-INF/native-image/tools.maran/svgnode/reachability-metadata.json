@@ -1,0 +1,6 @@
+{
+  "resources": [
+    { "glob": "tools/maran/svgnode/svg.bss" },
+    { "glob": "tools/maran/svgnode/svg.css" }
+  ]
+}
