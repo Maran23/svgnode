@@ -216,6 +216,14 @@ The API of `SvgNode` matches what is the de-facto standard for SVG libraries, in
 
 #### Changelog
 
+##### Version 2.0.1
+
+This is a minor release.
+
+- Minor performance improvements for uniform SVGs
+- Improve handling of null path
+- Add GraalVM `reachability-metadata.json`
+
 ##### Version 2.0.0
 
 This is release contains breaking changes. See below.
