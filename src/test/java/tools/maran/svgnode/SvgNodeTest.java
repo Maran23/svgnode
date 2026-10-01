@@ -48,13 +48,21 @@ class SvgNodeTest {
     /// Vertical rectangle - 12x24.
     private static final String RECT_VERTICAL = "M6 0h12v24H6z";
 
+    private static boolean toolkitStarted;
+
     @BeforeAll
     static void initToolkit() {
+        if (toolkitStarted) {
+            return;
+        }
+        toolkitStarted = true;
+
         System.setProperty("glass.platform", "Headless");
         System.setProperty("prism.order", "sw");
 
         CountDownLatch latch = new CountDownLatch(1);
         Platform.startup(() -> {
+            Platform.setImplicitExit(false);
             Application.setUserAgentStylesheet(toBase64("""
                 .root {
                     -fx-text-base-color: black;
