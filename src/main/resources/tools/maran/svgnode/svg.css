@@ -1,9 +1,64 @@
 /*
- * Based on modena.css.
- * If the stylesheet ever changes, this might not be a good idea anymore.
- * We style .svg directly so that CSS code by the developer will always override the properties.
- * This should be treated as a sensible default.
+ * Sensible defaults based on modena.css. If Modena changes, this might need an update.
+ * ---
+ * As a graphic, the SVG takes the text color of its control, which depends on what the text is painted on.
+ * The -fx-color of the .svg-node is also the base color of Modena, so it can not reference colors derived from it,
+ * like -fx-text-base-color or -fx-mark-color.
  */
+
+/* On a control, like a button, tab, titled pane or menu item. */
 .svg {
     -fx-background-color: -fx-text-base-color;
+}
+
+/* On a background, like a label, cell or tooltip. */
+.label > .svg-node > .svg,
+.cell .svg-node > .svg,
+.check-box > .svg-node > .svg,
+.radio-button > .svg-node > .svg,
+.tooltip .svg {
+    -fx-background-color: -fx-text-background-color;
+}
+
+/* Needed for buttons in a cell. */
+.button > .svg-node > .svg,
+.toggle-button > .svg-node > .svg {
+    -fx-background-color: -fx-text-base-color;
+}
+
+/* Labels and cells that are part of a control. */
+.menu-button > .label > .svg-node > .svg,
+.split-menu-button > .label > .svg-node > .svg,
+.combo-box > .list-cell > .svg-node > .svg {
+    -fx-background-color: -fx-text-base-color;
+}
+
+/* Highlighted menu bar button, painted on the selection bar. */
+.menu-bar > .container > .menu-button:hover > .label > .svg-node > .svg,
+.menu-bar > .container > .menu-button:focused > .label > .svg-node > .svg,
+.menu-bar > .container > .menu-button:showing > .label > .svg-node > .svg {
+    -fx-background-color: -fx-text-background-color;
+}
+
+/* Hyperlink: accent color, unless armed, visited or in a selected cell. */
+.hyperlink > .svg-node > .svg,
+.hyperlink:hover:visited > .svg-node > .svg {
+    -fx-background-color: -fx-accent;
+}
+
+.hyperlink:armed > .svg-node > .svg,
+.hyperlink:visited > .svg-node > .svg,
+.hyperlink:hover:armed > .svg-node > .svg,
+.cell:selected .hyperlink > .svg-node > .svg {
+    -fx-background-color: -fx-text-background-color;
+}
+
+/* Menu item in a popup owned by a node in a cell. */
+.menu-item > .graphic-container > .svg-node > .svg {
+    -fx-background-color: -fx-text-base-color;
+}
+
+/* Focused menu item, painted on the selection bar. */
+.menu-item:focused > .graphic-container > .svg-node > .svg {
+    -fx-background-color: -fx-focused-text-base-color;
 }

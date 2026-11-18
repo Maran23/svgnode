@@ -5,6 +5,10 @@ import java.util.Base64;
 import java.util.List;
 import java.util.function.Consumer;
 
+import javafx.animation.Animation;
+import javafx.animation.KeyFrame;
+import javafx.animation.KeyValue;
+import javafx.animation.Timeline;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
@@ -12,6 +16,9 @@ import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Separator;
+import javafx.scene.control.Spinner;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.Tooltip;
@@ -20,9 +27,12 @@ import javafx.scene.layout.Border;
 import javafx.scene.layout.BorderStroke;
 import javafx.scene.layout.BorderStrokeStyle;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.util.Duration;
 
+import tools.maran.shadfx.Styles;
 import tools.maran.svgnode.SvgNode;
 
 /// Sampler for the [SvgNode]:
@@ -32,6 +42,8 @@ import tools.maran.svgnode.SvgNode;
 /// - Runtime path swapping
 /// - Runtime color changes
 /// - Runtime resize behavior
+/// - Animations (CSS transitions, Timeline)
+/// - Font relative size (em)
 ///
 /// @author Marius Hanl
 public class SvgNodeSampler {
@@ -67,26 +79,35 @@ public class SvgNodeSampler {
             new Named<>("128px", 128d)
     );
 
-    private final VBox view;
+    private final TabPane view;
 
     public SvgNodeSampler() {
-        view = new VBox(4);
-        view.setPadding(new Insets(4));
-        view.setAlignment(Pos.TOP_LEFT);
-
-        addLabels();
-        addButtonGraphics();
-        addStaticSvgs();
-        addSvgPathSwap();
-        addSvgColorChange();
-        addSvgResize();
+        view = new TabPane(
+                tab("Properties", this::addLabels, this::addStaticSvgs, this::addSvgPathSwap, this::addSvgColorChange,
+                        this::addSvgResize),
+                tab("Animated", this::addButtonGraphics, this::addTimeline),
+                tab("Font relative", this::addFontRelative));
     }
 
     public Node getView() {
         return view;
     }
 
-    private void addButtonGraphics() {
+    @SafeVarargs
+    private static Tab tab(String text, Consumer<VBox>... sections) {
+        VBox content = new VBox(4);
+        content.setPadding(new Insets(4));
+        content.setAlignment(Pos.TOP_LEFT);
+        for (Consumer<VBox> section : sections) {
+            section.accept(content);
+        }
+
+        Tab tab = new Tab(text, content);
+        tab.setClosable(false);
+        return tab;
+    }
+
+    private void addButtonGraphics(VBox view) {
         view.getChildren().add(sectionLabel("Button Graphics automatically adjust"));
 
         Button buttonLight = createButtonWithCss("Light -> Dark on Hover (CSS)", """
@@ -141,7 +162,7 @@ public class SvgNodeSampler {
         view.getChildren().add(new HBox(4, buttonDark, buttonDark2));
     }
 
-    private void addLabels() {
+    private void addLabels(VBox view) {
         view.getChildren().add(sectionLabel("Usage with Label, CSS (Hover), Background, Border"));
 
         Label label = new Label("SVG with text", new SvgNode(HEART));
@@ -169,7 +190,7 @@ public class SvgNodeSampler {
         view.getChildren().add(new HBox(4, label, svgNodeHover, svgNodeBg));
     }
 
-    private void addStaticSvgs() {
+    private void addStaticSvgs(VBox view) {
         view.getChildren().addAll(new Separator(), sectionLabel("Static icons with Tooltip (24px)"));
 
         HBox staticRow = new HBox(12);
@@ -186,7 +207,7 @@ public class SvgNodeSampler {
         view.getChildren().add(staticRow);
     }
 
-    private void addSvgColorChange() {
+    private void addSvgColorChange(VBox view) {
         view.getChildren().addAll(new Separator(), sectionLabel("Runtime color change"));
 
         SvgNode colorTarget = new SvgNode(HEART, 40);
@@ -196,7 +217,7 @@ public class SvgNodeSampler {
         view.getChildren().add(new HBox(12, colorTarget, toggleBar));
     }
 
-    private void addSvgPathSwap() {
+    private void addSvgPathSwap(VBox view) {
         view.getChildren().addAll(new Separator(), sectionLabel("Runtime path swap"));
 
         SvgNode swappable = new SvgNode(HOME, 32);
@@ -206,7 +227,7 @@ public class SvgNodeSampler {
         view.getChildren().add(new HBox(12, swappable, toggleBar));
     }
 
-    private void addSvgResize() {
+    private void addSvgResize(VBox view) {
         view.getChildren().addAll(new Separator(), sectionLabel("Runtime resize"));
 
         SvgNode resizable = new SvgNode(STAR, 24);
@@ -214,6 +235,54 @@ public class SvgNodeSampler {
 
         HBox toggleBar = createToggleBar(SIZES, 1, resizable::setSize);
         view.getChildren().add(new VBox(4, toggleBar, resizable));
+    }
+
+    private void addTimeline(VBox view) {
+        view.getChildren().addAll(new Separator(), sectionLabel("Timeline on size and color"));
+
+        SvgNode svgNode = new SvgNode(HEART, 24);
+        svgNode.setColor(Color.CRIMSON);
+
+        Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(1),
+                new KeyValue(svgNode.sizeProperty(), 64),
+                new KeyValue(svgNode.colorProperty(), Color.BLUEVIOLET)));
+        timeline.setAutoReverse(true);
+        timeline.setCycleCount(Animation.INDEFINITE);
+        timeline.play();
+
+        StackPane container = new StackPane(svgNode);
+        container.setMinSize(64, 64);
+        container.setMaxSize(64, 64);
+        view.getChildren().add(container);
+    }
+
+    private void addFontRelative(VBox view) {
+        view.getChildren().add(sectionLabel("-fx-size: 1em scales with the font size"));
+
+        Spinner<Integer> fontSize = new Spinner<>(8, 96, 13);
+        fontSize.setEditable(true);
+
+        Label text = new Label("Text");
+
+        SvgNode svgNode = new SvgNode(STAR);
+        Label label = new Label("Label graphic", new SvgNode(HEART));
+
+        HBox row = new HBox(8, text, svgNode);
+        row.setAlignment(Pos.CENTER_LEFT);
+
+        VBox container = new VBox(8, row, label);
+        container.getStyleClass().add("font-relative");
+
+        fontSize.valueProperty().subscribe(size -> view.getStylesheets().setAll(toBase64("""
+                .font-relative {
+                    -fx-font-size: %dpx;
+                }
+                .font-relative .svg-node {
+                    -fx-size: 1em;
+                }
+                """.formatted(size))));
+
+        view.getChildren().addAll(new HBox(8, new Label("Font size"), fontSize), new Separator(), container);
     }
 
     private Button createButtonWithCss(String text, String css) {
@@ -225,6 +294,7 @@ public class SvgNodeSampler {
 
     private <T> HBox createToggleBar(List<Named<T>> items, int defaultIndex, Consumer<T> onSelect) {
         HBox box = new HBox(0);
+        box.getStyleClass().add(Styles.BUTTON_GROUP);
         box.setAlignment(Pos.CENTER_LEFT);
 
         ToggleGroup group = new ToggleGroup();
@@ -241,14 +311,6 @@ public class SvgNodeSampler {
             btn.setUserData(item.value());
             btn.setToggleGroup(group);
 
-            if (i == 0) {
-                btn.getStyleClass().add("left-pill");
-            } else if (i == items.size() - 1) {
-                btn.getStyleClass().add("right-pill");
-            } else {
-                btn.getStyleClass().add("center-pill");
-            }
-
             box.getChildren().add(btn);
         }
 
@@ -258,7 +320,6 @@ public class SvgNodeSampler {
 
     private static Label sectionLabel(String text) {
         Label label = new Label(text);
-        label.getStyleClass().add("header");
         return label;
     }
 

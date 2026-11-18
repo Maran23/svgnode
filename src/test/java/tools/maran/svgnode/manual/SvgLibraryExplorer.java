@@ -39,6 +39,7 @@ import tools.maran.svg.fontawesome.FASolid;
 import tools.maran.svg.materialdesign.MDIInterface;
 import tools.maran.svg.materialdesign.MDITechnology;
 import tools.maran.svg.materialdesign.MDIWorld;
+import tools.maran.shadfx.Styles;
 import tools.maran.svgnode.SvgNode;
 
 /// An SVG explorer that displays all available SVGs from a library in a searchable, browsable grid.
@@ -130,14 +131,11 @@ public class SvgLibraryExplorer {
             }
         });
 
-        StackPane stackPane = new StackPane(tabPane);
-        stackPane.getStyleClass().add("content-area");
-
         view = new BorderPane();
         VBox top = new VBox(4, searchBar, sizeBar, copyBox);
         BorderPane.setMargin(top, new Insets(4));
         view.setTop(top);
-        view.setCenter(stackPane);
+        view.setCenter(tabPane);
         view.setPadding(new Insets(4));
 
         tabPane.getSelectionModel().clearSelection();
@@ -191,7 +189,6 @@ public class SvgLibraryExplorer {
         Tooltip value = new Tooltip(displayName);
         value.setFont(Font.font(14));
         btn.setTooltip(value);
-        btn.getStyleClass().add("svg-button");
         btn.setOnAction(_ -> copyToClipboard(enumName));
 
         return btn;
@@ -268,15 +265,14 @@ public class SvgLibraryExplorer {
         CategorizedSvgLibrary(Category... categories) {
             ToggleGroup group = new ToggleGroup();
             HBox subBar = new HBox(0);
+            subBar.getStyleClass().add(Styles.BUTTON_GROUP);
             subBar.setAlignment(Pos.CENTER_LEFT);
             subBar.setPadding(new Insets(4));
 
-            for (int i = 0; i < categories.length; i++) {
-                Category cat = categories[i];
+            for (Category cat : categories) {
                 ToggleButton btn = new ToggleButton(cat.label());
                 btn.setUserData(cat);
                 btn.setToggleGroup(group);
-                applyPillStyle(btn, i, categories.length);
                 subBar.getChildren().add(btn);
             }
 
@@ -312,18 +308,6 @@ public class SvgLibraryExplorer {
         @Override
         SVG[] values() {
             return current;
-        }
-
-        private static void applyPillStyle(ToggleButton btn, int index, int count) {
-            if (count == 1) {
-                btn.getStyleClass().addAll("left-pill", "right-pill");
-            } else if (index == 0) {
-                btn.getStyleClass().add("left-pill");
-            } else if (index == count - 1) {
-                btn.getStyleClass().add("right-pill");
-            } else {
-                btn.getStyleClass().add("center-pill");
-            }
         }
 
         /// A named category backed by an SVG enum class.
