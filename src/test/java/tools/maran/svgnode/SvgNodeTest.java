@@ -3,15 +3,6 @@ package tools.maran.svgnode;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
-import java.util.concurrent.Callable;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-
-import javafx.application.Application;
-import javafx.application.Platform;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleDoubleProperty;
@@ -27,17 +18,13 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /// Headless tests for [SvgNode].
 ///
 /// @author Marius Hanl
-class SvgNodeTest {
-
-    /// The maximum time we wait for an action on the JavaFX application thread to be finished.
-    private static final long TIMEOUT_SECONDS = 30;
+class SvgNodeTest extends CssTest {
 
     /// Small epsilon for color assertions.
     private static final double EPS = 10e-6;
@@ -48,35 +35,9 @@ class SvgNodeTest {
     /// Vertical rectangle - 12x24.
     private static final String RECT_VERTICAL = "M6 0h12v24H6z";
 
-    private static boolean toolkitStarted;
-
-    @BeforeAll
-    static void initToolkit() {
-        if (toolkitStarted) {
-            return;
-        }
-        toolkitStarted = true;
-
-        System.setProperty("glass.platform", "Headless");
-        System.setProperty("prism.order", "sw");
-
-        CountDownLatch latch = new CountDownLatch(1);
-        Platform.startup(() -> {
-            Platform.setImplicitExit(false);
-            Application.setUserAgentStylesheet(toBase64("""
-                .root {
-                    -fx-text-base-color: black;
-                }
-                """));
-            latch.countDown();
-        });
-
-        await(latch);
-    }
-
     @Test
     @DisplayName("Changing path at runtime swaps the rendered shape")
-    void testChangePath() throws Exception {
+    void testChangePath() {
         SvgNode node = new SvgNode(SQUARE, 48);
         node.setColor(Color.RED);
 
@@ -84,10 +45,7 @@ class SvgNodeTest {
         assertSvgDimensions(node, 48, 48);
         assertPixelsColor(image, Color.RED);
 
-        runOnFxThread(() -> {
-            node.setPath(RECT_HORIZONTAL);
-            return null;
-        });
+        runOnFxThread(() -> node.setPath(RECT_HORIZONTAL));
 
         image = showAndSnapshot(node);
         assertSvgDimensions(node, 48, 24);
@@ -98,7 +56,7 @@ class SvgNodeTest {
 
     @Test
     @DisplayName("Changing size at runtime rescales the SVG content")
-    void testChangeSize() throws Exception {
+    void testChangeSize() {
         SvgNode node = new SvgNode(SQUARE, 24);
         node.setColor(Color.RED);
 
@@ -106,10 +64,7 @@ class SvgNodeTest {
         assertSvgDimensions(node, 24, 24);
         assertPixelsColor(smallImage, Color.RED);
 
-        runOnFxThread(() -> {
-            node.setSize(48);
-            return null;
-        });
+        runOnFxThread(() -> node.setSize(48));
 
         WritableImage largeImage = showAndSnapshot(node);
         assertSvgDimensions(node, 48, 48);
@@ -118,7 +73,7 @@ class SvgNodeTest {
 
     @Test
     @DisplayName("Changing SvgNode color at runtime updates rendered pixels")
-    void testColorChange() throws Exception {
+    void testColorChange() {
         SvgNode node = new SvgNode(SQUARE, 24);
         node.setColor(Color.RED);
 
@@ -131,26 +86,23 @@ class SvgNodeTest {
     }
 
     @Test
-    @DisplayName("Setting SVG color to null clears fill to transparent")
-    void testColorToNull() throws Exception {
+    @DisplayName("Setting SVG color to null restores the color of the stylesheet")
+    void testColorToNull() {
         SvgNode node = new SvgNode(SQUARE, 24);
         node.setColor(Color.RED);
 
         WritableImage image = showAndSnapshot(node);
         assertPixelsColor(image, Color.RED);
 
-        runOnFxThread(() -> {
-            node.setColor(null);
-            return null;
-        });
+        runOnFxThread(() -> node.setColor(null));
 
         image = showAndSnapshot(node);
-        assertPixelsColor(image, Color.TRANSPARENT);
+        assertPixelsColor(image, Color.BLACK);
     }
 
     @Test
     @DisplayName("Path, size and color are applied from a stylesheet")
-    void testCss() throws Exception {
+    void testCss() {
         SvgNode node = new SvgNode();
         node.getStylesheets().add(toBase64("""
                 .svg-node {
@@ -172,8 +124,29 @@ class SvgNodeTest {
     }
 
     @Test
+    @DisplayName("Removing the style class of a color restores the color of the stylesheet")
+    void testCssColorRemoved() {
+        SvgNode node = new SvgNode(SQUARE, 24);
+        node.getStylesheets().add(toBase64("""
+                .red {
+                    -fx-color: red;
+                }
+                """));
+        node.getStyleClass().add("red");
+
+        WritableImage image = showAndSnapshot(node);
+        assertPixelsColor(image, Color.RED);
+
+        runOnFxThread(() -> node.getStyleClass().remove("red"));
+
+        image = showAndSnapshot(node);
+        assertNull(node.getColor());
+        assertPixelsColor(image, Color.BLACK);
+    }
+
+    @Test
     @DisplayName("CSS does not override bound properties")
-    void testCssIgnoredWhenBound() throws Exception {
+    void testCssIgnoredWhenBound() {
         SvgNode node = new SvgNode();
         node.pathProperty().bind(new SimpleStringProperty(SQUARE));
         node.sizeProperty().bind(new SimpleDoubleProperty(48));
@@ -191,7 +164,7 @@ class SvgNodeTest {
 
     @Test
     @DisplayName("Inline style overrides values set in code")
-    void testCssInlineOverridesSetValues() throws Exception {
+    void testCssInlineOverridesSetValues() {
         SvgNode node = new SvgNode(RECT_VERTICAL, 24);
         node.setColor(Color.RED);
         node.setStyle("-fx-path: \"%s\"; -fx-size: 48; -fx-color: blue;".formatted(SQUARE));
@@ -206,8 +179,26 @@ class SvgNodeTest {
     }
 
     @Test
+    @DisplayName("CSS size in em is relative to the parent font size")
+    void testCssSizeEm() {
+        SvgNode node = new SvgNode(SQUARE);
+        node.setStyle("-fx-size: 2em;");
+        StackPane parent = new StackPane(node);
+        parent.setStyle("-fx-font-size: 20px;");
+
+        runOnFxThread(() -> applyAndLayout(new Scene(parent)));
+        assertEquals(40, node.getSize(), EPS);
+
+        runOnFxThread(() -> {
+            parent.setStyle("-fx-font-size: 10px;");
+            applyAndLayout(parent.getScene());
+        });
+        assertEquals(20, node.getSize(), EPS);
+    }
+
+    @Test
     @DisplayName("Empty SvgNode renders fully transparent")
-    void testDefault() throws Exception {
+    void testDefault() {
         SvgNode node = new SvgNode();
 
         WritableImage image = showAndSnapshot(node);
@@ -275,7 +266,7 @@ class SvgNodeTest {
 
     @Test
     @DisplayName("Horizontal 2:1 rect scales width to size and centers vertically")
-    void testHorizontalRect() throws Exception {
+    void testHorizontalRect() {
         SvgNode node = new SvgNode(RECT_HORIZONTAL, 48);
         node.setColor(Color.RED);
 
@@ -289,7 +280,7 @@ class SvgNodeTest {
 
     @Test
     @DisplayName("Null path renders fully transparent")
-    void testNullPath() throws Exception {
+    void testNullPath() {
         SvgNode node = new SvgNode(SQUARE);
         node.setColor(Color.RED);
         node.setPath(null);
@@ -302,7 +293,7 @@ class SvgNodeTest {
 
     @Test
     @DisplayName("Square SVG at 32px renders solid blue")
-    void testSquareBlue32() throws Exception {
+    void testSquareBlue32() {
         SvgNode node = new SvgNode(SQUARE, 32);
         node.setColor(Color.BLUE);
 
@@ -314,7 +305,7 @@ class SvgNodeTest {
 
     @Test
     @DisplayName("Square SVG is correctly rendered and black due to our CSS config")
-    void testSquareDefault() throws Exception {
+    void testSquareDefault() {
         SvgNode node = new SvgNode(SQUARE);
 
         WritableImage image = showAndSnapshot(node);
@@ -325,7 +316,7 @@ class SvgNodeTest {
 
     @Test
     @DisplayName("Square at 64px renders solid green")
-    void testSquareGreen64() throws Exception {
+    void testSquareGreen64() {
         SvgNode node = new SvgNode(SQUARE, 64);
         node.setColor(Color.GREEN);
 
@@ -337,7 +328,7 @@ class SvgNodeTest {
 
     @Test
     @DisplayName("Square at 48px renders solid red")
-    void testSquareRed48() throws Exception {
+    void testSquareRed48() {
         SvgNode node = new SvgNode(SQUARE, 48);
         node.setColor(Color.RED);
 
@@ -349,7 +340,7 @@ class SvgNodeTest {
 
     @Test
     @DisplayName("Vertical 1:2 rect scales height to size and centers horizontally")
-    void testVerticalRect() throws Exception {
+    void testVerticalRect() {
         SvgNode node = new SvgNode(RECT_VERTICAL, 48);
         node.setColor(Color.BLUE);
 
@@ -359,11 +350,6 @@ class SvgNodeTest {
         assertPixelsColor(image, Color.TRANSPARENT, new Rectangle2D(0, 0, 12, 48));
         assertPixelsColor(image, Color.BLUE, new Rectangle2D(12, 0, 24, 48));
         assertPixelsColor(image, Color.TRANSPARENT, new Rectangle2D(36, 0, 12, 48));
-    }
-
-    private static void applyAndLayout(Scene scene) {
-        scene.getRoot().applyCss();
-        scene.getRoot().layout();
     }
 
     /// Asserts that all pixels in the image match the expected color.
@@ -382,12 +368,9 @@ class SvgNodeTest {
         for (int y = y1; y < y2; y++) {
             for (int x = x1; x < x2; x++) {
                 Color actual = reader.getColor(x, y);
-                assertEquals(expected.getRed(), actual.getRed(), EPS,
-                        "red mismatch at (%d,%d)".formatted(x, y));
-                assertEquals(expected.getGreen(), actual.getGreen(), EPS,
-                        "green mismatch at (%d,%d)".formatted(x, y));
-                assertEquals(expected.getBlue(), actual.getBlue(), EPS,
-                        "blue mismatch at (%d,%d)".formatted(x, y));
+                assertEquals(expected.getRed(), actual.getRed(), EPS, "red mismatch at (%d,%d)".formatted(x, y));
+                assertEquals(expected.getGreen(), actual.getGreen(), EPS, "green mismatch at (%d,%d)".formatted(x, y));
+                assertEquals(expected.getBlue(), actual.getBlue(), EPS, "blue mismatch at (%d,%d)".formatted(x, y));
                 assertEquals(expected.getOpacity(), actual.getOpacity(), EPS,
                         "opacity mismatch at (%d,%d)".formatted(x, y));
             }
@@ -396,9 +379,8 @@ class SvgNodeTest {
 
     /// Asserts that the inner SVG [Region] (styleClass `svg`) reports the expected dimensions
     /// across all six compute methods.
-    private static void assertSvgDimensions(SvgNode node, double expectedWidth, double expectedHeight)
-            throws Exception {
-        double[] widthHeightDimensions = runOnFxThread(() -> {
+    private static void assertSvgDimensions(SvgNode node, double expectedWidth, double expectedHeight) {
+        double[] widthHeightDimensions = getOnFxThread(() -> {
             Region svg = (Region) node.lookup(".svg");
             return new double[] { // Get width and height in UI thread.
                     svg.minWidth(-1), svg.prefWidth(-1), svg.maxWidth(-1), // width
@@ -413,39 +395,11 @@ class SvgNodeTest {
         assertEquals(expectedHeight, widthHeightDimensions[5], EPS, "svg maxHeight");
     }
 
-    private static void await(CountDownLatch latch) {
-        try {
-            if (!latch.await(TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
-                throw new IllegalStateException(
-                        "The JavaFX application thread did not finish within " + TIMEOUT_SECONDS + " seconds.");
-            }
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new IllegalStateException("Interrupted while waiting for the JavaFX application thread.", e);
-        }
-    }
-
-    private static <T> T runOnFxThread(Callable<T> action) throws Exception {
-        CompletableFuture<T> future = new CompletableFuture<>();
-        Platform.runLater(() -> {
-            try {
-                future.complete(action.call());
-            } catch (Throwable e) {
-                future.completeExceptionally(e);
-            }
-        });
-        return future.get(5, TimeUnit.SECONDS);
-    }
-
-    private static WritableImage showAndSnapshot(SvgNode node) throws Exception {
-        return runOnFxThread(() -> {
+    private static WritableImage showAndSnapshot(SvgNode node) {
+        return getOnFxThread(() -> {
             Scene scene = useScene(node);
             return scene.snapshot(null);
         });
-    }
-
-    private static String toBase64(String css) {
-        return "data:base64," + Base64.getUrlEncoder().encodeToString(css.getBytes(StandardCharsets.UTF_8));
     }
 
     private static Scene useScene(SvgNode node) {

@@ -34,6 +34,7 @@ styling.
 - [Usage](#usage)
     - [Java](#java)
     - [FXML](#fxml)
+    - [CSS](#css)
     - [Use with SVG Libraries](#use-with-svg-libraries)
 - [Sampler](#sampler)
 - [API and Motivation](#api-and-motivation)
@@ -45,7 +46,7 @@ styling.
 - 🎨 Render any SVG path as a JavaFX node
 - 🔗 No dependencies - will use your provided JavaFX runtime
 - ⚡ Optimized to be efficient and have a tiny footprint, so you can render 1000 `SvgNode` instances without any problem.
-- 📐 Uniform rasterization with a single `size` property
+- 📐 Uniform rasterization with a single `size` property, relative to the font size with `em` in CSS
 - 📄 FXML-compatible with attribute and constant-based usage
 - 🎭 CSS-stylable via `.svg-node` and `.svg` style classes. By default, the SVG automatically adjusts its color based on
   the background - just like text
@@ -124,6 +125,24 @@ dynamic.sizeProperty().bind(slider.valueProperty());
 </SvgNode>
 ```
 
+### CSS
+
+```css
+.svg-node {
+    -fx-path: "M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z";
+    -fx-size: 32;
+    -fx-color: red;
+}
+```
+
+`-fx-size` supports relative units like `em`, so the SVG scales with the font size, e.g. next to text:
+
+```css
+.svg-node {
+    -fx-size: 1em;
+}
+```
+
 ### Use with SVG Libraries
 
 `SvgNode` works with any library that provides SVGs as a path. Below are some examples where the SVGs are located in an
@@ -182,6 +201,8 @@ Shows the functionality of `SvgNode`.
 
 - Using a `SvgNode` as `Label` and `Button` graphic, showing the automatic color switching based on the text color
 - Changing the path, color, and size of the `SvgNode`
+- Animations with CSS transitions and a `Timeline`
+- Font relative size with `-fx-size: 1em`
 
 ### SVG library explorer
 
@@ -231,6 +252,14 @@ So what you have is usually this:
 The API of `SvgNode` matches what is the de-facto standard for SVG libraries, in a way that is compatible with JavaFX.
 
 #### Changelog
+
+##### Version 2.0.2
+
+This is a minor release.
+
+- As a graphic, the SVG takes the text color of more controls by default, like `CheckBox`, `RadioButton`, `Hyperlink`,
+  `MenuItem`, `MenuButton`, `ComboBox`, `TitledPane`, `Tab`, `Tooltip` and controls inside a cell
+- Setting `color` to `null` restores the default color of the stylesheet instead of making the SVG transparent
 
 ##### Version 2.0.1
 

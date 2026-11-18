@@ -177,6 +177,7 @@ public class SvgNode extends Region {
     }
 
     /// The fill color of the SVG shape itself.
+    /// If `null`, the default color of the stylesheet is used, which follows the text color of the parent control.
     ///
     /// Can be set in CSS with `-fx-color`.
     ///
@@ -188,7 +189,13 @@ public class SvgNode extends Region {
                 @Override
                 protected void invalidated() {
                     final Paint color = get();
-                    svgContent.setBackground(color == null ? null : Background.fill(color));
+                    if (color == null) {
+                        // Hand the background back to the stylesheet.
+                        ((StyleableProperty<Background>) svgContent.backgroundProperty()).applyStyle(null, null);
+                        svgContent.applyCss();
+                    } else {
+                        svgContent.setBackground(Background.fill(color));
+                    }
                 }
 
                 @Override
