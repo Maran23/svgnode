@@ -11,7 +11,7 @@
 
     <name>SVGNode</name>
     <description>A lightweight JavaFX node for rendering SVG paths at any size. Fully supports FXML, property binding, and CSS styling.</description>
-    <url>https://github.com/Maran23/svgnode</url>
+    <url>https://github.com/Maran-Tools/svgnode</url>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -157,14 +157,14 @@
     <licenses>
         <license>
             <name>MIT License</name>
-            <url>https://github.com/Maran23/svgnode/blob/master/LICENSE</url>
+            <url>https://github.com/Maran-Tools/svgnode/blob/master/LICENSE</url>
         </license>
     </licenses>
 
     <scm>
-        <connection>scm:git:github.com/Maran23/svgnode.git</connection>
-        <developerConnection>scm:git:ssh://github.com/Maran23/svgnode.git</developerConnection>
-        <url>https://github.com/Maran23/svgnode</url>
+        <connection>scm:git:https://github.com/Maran-Tools/svgnode.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/Maran-Tools/svgnode.git</developerConnection>
+        <url>https://github.com/Maran-Tools/svgnode</url>
     </scm>
 
 </project>

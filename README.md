@@ -3,7 +3,7 @@
 A lightweight, optimized JavaFX node for rendering SVG paths at any size. Fully supports FXML, property binding, and CSS
 styling.
 
-![Sampler](https://github.com/Maran23/svgnode/blob/demo/demo/sampler.webp)
+![Sampler](https://github.com/Maran-Tools/svgnode/blob/demo/demo/sampler.webp)
 
 <details>
 <summary>SVG Libraries</summary>
@@ -12,15 +12,15 @@ styling.
 
 ### Material Design
 
-![Material Design](https://github.com/Maran23/svgnode/blob/demo/demo/library_materialdesign.webp)
+![Material Design](https://github.com/Maran-Tools/svgnode/blob/demo/demo/library_materialdesign.webp)
 
 ### Bootstrap
 
-![Bootstrap](https://github.com/Maran23/svgnode/blob/demo/demo/library_bootstrap.webp)
+![Bootstrap](https://github.com/Maran-Tools/svgnode/blob/demo/demo/library_bootstrap.webp)
 
 ### Font Awesome
 
-![FontAwesome](https://github.com/Maran23/svgnode/blob/demo/demo/library_fontawesome.webp)
+![FontAwesome](https://github.com/Maran-Tools/svgnode/blob/demo/demo/library_fontawesome.webp)
 
 </details>
 
@@ -54,9 +54,9 @@ styling.
 
 Will work fine with SVG Libraries (see usage [below](#use-with-svg-libraries)) such as:
 
-- [SVG-MaterialDesign](https://github.com/Maran23/svg-materialdesign)
-- [SVG-Boostrap](https://github.com/Maran23/svg-bootstrap)
-- [SVG-FontAwesome](https://github.com/Maran23/svg-fontawesome)
+- [SVG-MaterialDesign](https://github.com/Maran-Tools/svg-materialdesign)
+- [SVG-Boostrap](https://github.com/Maran-Tools/svg-bootstrap)
+- [SVG-FontAwesome](https://github.com/Maran-Tools/svg-fontawesome)
 
 ## Installation
 
